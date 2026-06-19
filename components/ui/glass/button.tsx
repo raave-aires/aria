@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button as BaseButton } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import * as React from "react";
+import { Button as BaseButton } from "@/components/ui/button";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends Omit<React.ComponentProps<typeof BaseButton>, "glass"> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
  * Glass UI Button - A beautifully designed button component with glassy effects
  * Built on top of the base Button component with enhanced visual effects
- * 
+ *
  * @example
  * ```tsx
- * <Button 
+ * <Button
  *   glass={{
  *     color: "rgba(59, 130, 246, 0.2)",
  *     blur: 25,
@@ -29,23 +29,21 @@ export interface ButtonProps
  * </Button>
  * ```
  */
-export const Button = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps
->(({ className, effect = "glow", variant = "glass", glass, ...props }, ref) => {
-  return (
-    <BaseButton
-      ref={ref}
-      variant={variant}
-      glass={glass}
-      className={cn(
-        "relative overflow-hidden",
-        hoverEffects({ hover: effect }),
-        className
-      )}
-      {...props}
-    />
-  )
-})
-Button.displayName = "Button"
-
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, effect = "none", variant = "glass", glass, ...props }, ref) => {
+    return (
+      <BaseButton
+        ref={ref}
+        variant={variant}
+        glass={glass}
+        className={cn(
+          "relative overflow-hidden",
+          hoverEffects({ hover: effect }),
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);
+Button.displayName = "Button";
