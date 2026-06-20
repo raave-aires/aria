@@ -27,6 +27,25 @@ function extractSuggestions(payload: unknown) {
     .slice(0, MAX_SUGGESTIONS);
 }
 
+function getResponseEncoding(contentType: string | null) {
+  const charset = contentType
+    ?.match(/charset\s*=\s*([^;]+)/i)?.[1]
+    ?.trim()
+    .replace(/^['"]|['"]$/g, "")
+    .toLowerCase();
+
+  return charset === "iso-8859-1" || charset === "windows-1252"
+    ? charset
+    : "utf-8";
+}
+
+async function parseSuggestionPayload(response: Response) {
+  const body = await response.arrayBuffer();
+  const encoding = getResponseEncoding(response.headers.get("content-type"));
+
+  return JSON.parse(new TextDecoder(encoding).decode(body)) as unknown;
+}
+
 export async function GET(request: NextRequest) {
   const nickname = request.nextUrl.searchParams.get("engine") ?? "";
   const query = request.nextUrl.searchParams.get("q")?.trim() ?? "";
@@ -56,7 +75,7 @@ export async function GET(request: NextRequest) {
       return emptySuggestions();
     }
 
-    const payload: unknown = await response.json();
+    const payload = await parseSuggestionPayload(response);
 
     return NextResponse.json(
       { suggestions: extractSuggestions(payload) },
