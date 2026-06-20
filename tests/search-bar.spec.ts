@@ -26,6 +26,67 @@ test("mostra DuckDuckGo e permite escolher outro motor", async ({ page }) => {
   ).toHaveAttribute("placeholder", "Pesquisar com Google");
 });
 
+test("compacta o seletor e aplica vidro fosco com espaço entre as opções", async ({
+  page,
+}) => {
+  const engineButton = page.getByRole("button", {
+    name: "Selecionar motor de busca: DuckDuckGo",
+  });
+
+  await expect(engineButton).toHaveText("");
+  await expect(engineButton.locator("img")).toHaveAttribute(
+    "src",
+    /duckduckgo/,
+  );
+
+  await engineButton.click();
+
+  const dropdown = page.locator('[data-slot="command-list"]');
+  await expect(dropdown).toHaveClass(/search-dropdown/);
+
+  const supportsBackdropFilter = await page.evaluate(() =>
+    CSS.supports("backdrop-filter", "blur(1px)"),
+  );
+  if (supportsBackdropFilter) {
+    await expect(dropdown).toHaveCSS("backdrop-filter", /blur/);
+  }
+
+  const options = page.getByRole("option");
+  const firstOption = await options.nth(0).boundingBox();
+  const secondOption = await options.nth(1).boundingBox();
+
+  expect(firstOption).not.toBeNull();
+  expect(secondOption).not.toBeNull();
+  expect(secondOption?.y).toBeGreaterThan(
+    (firstOption?.y ?? 0) + (firstOption?.height ?? 0),
+  );
+
+  await expect(
+    page.getByRole("option", { name: "Wikipédia" }).locator("img"),
+  ).toHaveAttribute("src", /wikipedia/);
+  await expect(
+    page.getByRole("option", { name: "YouTube" }).locator("img"),
+  ).toHaveAttribute("src", /youtube/);
+  await expect(
+    page.getByRole("option", { name: /DuckDuckGo/ }).getByText("Atual"),
+  ).toBeVisible();
+
+  const badge = page
+    .getByRole("option", { name: /DuckDuckGo/ })
+    .getByText("Atual");
+  const shortcut = page
+    .getByRole("option", { name: /Brave Search/ })
+    .locator('[data-slot="command-shortcut"]');
+  const badgeBox = await badge.boundingBox();
+  const shortcutBox = await shortcut.boundingBox();
+
+  expect(badgeBox).not.toBeNull();
+  expect(shortcutBox).not.toBeNull();
+  expect(
+    Math.abs((badgeBox?.right ?? 0) - (shortcutBox?.right ?? 0)),
+  ).toBeLessThanOrEqual(1);
+});
+
 test("apelido no texto tem prioridade sobre o motor selecionado", async ({
   page,
 }) => {
@@ -77,6 +138,42 @@ test("exibe e envia uma sugestão retornada pela API interna", async ({
   await suggestion.click();
 
   await expect(page).toHaveURL(/duckduckgo\.com\/\?q=aria%20framework/);
+});
+
+test("mostra o spinner no título enquanto busca sugestões", async ({
+  page,
+}) => {
+  await page.route("**/api/search-suggestions**", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.fulfill({ json: { suggestions: ["aria framework"] } });
+  });
+
+  await page.getByRole("textbox", { name: "Buscar na web" }).fill("aria");
+
+  const dropdown = page.locator('[data-slot="command-list"]');
+  await expect(
+    dropdown.getByRole("status", { name: "Buscando sugestões" }),
+  ).toBeVisible();
+  await expect(dropdown.getByText("Buscando sugestões…")).toHaveCount(0);
+});
+
+test("limita as sugestões visíveis e mantém a lista sem scrollbar", async ({
+  page,
+}) => {
+  const suggestions = Array.from(
+    { length: 7 },
+    (_, index) => `sugestão ${index + 1}`,
+  );
+  await page.route("**/api/search-suggestions**", (route) =>
+    route.fulfill({ json: { suggestions } }),
+  );
+
+  await page.getByRole("textbox", { name: "Buscar na web" }).fill("sug");
+
+  const dropdown = page.locator('[data-slot="command-list"]');
+  await expect(dropdown.getByRole("option")).toHaveCount(6);
+  await expect(dropdown).toHaveCSS("scrollbar-width", "none");
+  await expect(page.getByRole("option", { name: "sugestão 7" })).toHaveCount(0);
 });
 
 test("continua pesquisando quando o motor não possui sugestões", async ({
