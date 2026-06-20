@@ -488,3 +488,126 @@ body {
 [data-sonner-toast] [data-close-button]:hover {
   opacity: 0.9 !important;
 }
+
+/* Search-specific surfaces: the background image stays atmospheric while the
+   controls provide enough separation to be readable. */
+:root {
+  --scene-overlay: linear-gradient(
+    180deg,
+    rgba(16, 32, 37, 0.12) 0%,
+    rgba(16, 31, 35, 0.05) 100%
+  );
+  --glass-bg: linear-gradient(
+    135deg,
+    rgba(241, 249, 249, 0.44) 0%,
+    rgba(213, 229, 230, 0.31) 100%
+  );
+  --glass-border: rgba(255, 255, 255, 0.46);
+  --glass-shadow:
+    0 10px 26px rgba(12, 26, 30, 0.1),
+    0 2px 6px rgba(12, 26, 30, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  --glass-shadow-lg:
+    0 16px 34px rgba(12, 26, 30, 0.12),
+    0 3px 9px rgba(12, 26, 30, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  --glass-shadow-sm:
+    0 4px 12px rgba(12, 26, 30, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  --blur: 18px;
+  --glass-frosted-bg: linear-gradient(
+    135deg,
+    rgba(236, 246, 247, 0.66) 0%,
+    rgba(170, 193, 196, 0.48) 100%
+  );
+  --glass-frosted-border: rgba(255, 255, 255, 0.52);
+  --glass-frosted-shadow:
+    0 14px 30px rgba(12, 26, 30, 0.12),
+    0 3px 8px rgba(12, 26, 30, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  --blur-frosted: 30px;
+  --search-dropdown-bg: linear-gradient(
+    135deg,
+    rgba(237, 247, 248, 0.76) 0%,
+    rgba(165, 189, 193, 0.63) 100%
+  );
+  --search-dropdown-border: rgba(255, 255, 255, 0.54);
+  --dropdown-item-bg: rgba(255, 255, 255, 0.18);
+  --dropdown-item-active-bg: rgba(255, 255, 255, 0.42);
+}
+
+.dark {
+  --scene-overlay: linear-gradient(
+    180deg,
+    rgba(3, 13, 18, 0.68) 0%,
+    rgba(9, 25, 31, 0.58) 100%
+  );
+  --foreground: oklch(0.96 0.008 220);
+  --card-foreground: oklch(0.96 0.008 220);
+  --popover-foreground: oklch(0.96 0.008 220);
+  --muted-foreground: oklch(0.82 0.012 220);
+  --glass-bg: linear-gradient(
+    135deg,
+    rgba(28, 51, 59, 0.72) 0%,
+    rgba(11, 28, 35, 0.64) 100%
+  );
+  --glass-border: rgba(211, 235, 239, 0.2);
+  --glass-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.16),
+    0 2px 5px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(235, 253, 255, 0.12);
+  --glass-shadow-lg:
+    0 12px 28px rgba(0, 0, 0, 0.19),
+    0 3px 8px rgba(0, 0, 0, 0.09),
+    inset 0 1px 0 rgba(235, 253, 255, 0.14);
+  --glass-shadow-sm:
+    0 4px 10px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(235, 253, 255, 0.1);
+  --glass-frosted-bg: linear-gradient(
+    135deg,
+    rgba(30, 58, 67, 0.86) 0%,
+    rgba(11, 32, 40, 0.78) 100%
+  );
+  --glass-frosted-border: rgba(211, 235, 239, 0.24);
+  --glass-frosted-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.18),
+    0 3px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(235, 253, 255, 0.14);
+  --search-dropdown-bg: linear-gradient(
+    135deg,
+    rgba(31, 62, 72, 0.9) 0%,
+    rgba(9, 30, 38, 0.84) 100%
+  );
+  --search-dropdown-border: rgba(211, 235, 239, 0.25);
+  --dropdown-item-bg: rgba(235, 253, 255, 0.07);
+  --dropdown-item-active-bg: rgba(235, 253, 255, 0.16);
+}
+
+.scene-overlay {
+  background: var(--scene-overlay);
+  transition: background 200ms ease-out;
+}
+
+.search-dropdown {
+  background-image: var(--search-dropdown-bg) !important;
+  border: 1px solid var(--search-dropdown-border) !important;
+  box-shadow: var(--glass-frosted-shadow) !important;
+}
+
+.search-dropdown [data-slot="command-item"] {
+  background-color: var(--dropdown-item-bg) !important;
+  transition:
+    background-color 180ms ease-out,
+    transform 180ms ease-out;
+}
+
+.search-dropdown [data-slot="command-item"][data-selected="true"] {
+  background-color: var(--dropdown-item-active-bg) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-overlay,
+  .search-dropdown [data-slot="command-item"] {
+    transition: none;
+  }
+}
