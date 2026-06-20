@@ -1,5 +1,5 @@
 import Image, { type StaticImageData } from "next/image";
-import Default from "@/assets/images/mountain.webp"
+import Default from "@/assets/images/mountain.webp";
 
 interface BackgroundProps {
   src?: string | StaticImageData;
@@ -8,7 +8,10 @@ interface BackgroundProps {
 
 // TODO: permitir que o usuário escolha a imagem de fundo, talvez usando uma API de imagens ou permitindo uploads personalizados.
 
-export function Background({ src = Default, alt = "Imagem de uma montanha" }: BackgroundProps) {
+export function Background({
+  src = Default,
+  alt = "Imagem de uma montanha",
+}: BackgroundProps) {
   return (
     <Image
       src={src}
@@ -19,4 +22,4 @@ export function Background({ src = Default, alt = "Imagem de uma montanha" }: Ba
       className="object-cover z-0"
     />
   );
-};
+}
