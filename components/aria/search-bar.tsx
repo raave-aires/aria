@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, LoaderCircle, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import * as React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -10,6 +10,8 @@ import duckDuckGoLogo from "@/assets/logos/duckduckgo.svg";
 import googleLogo from "@/assets/logos/google.svg";
 import kagiLogo from "@/assets/logos/kagi.svg";
 import startpageLogo from "@/assets/logos/startpage.svg";
+import wikipediaLogo from "@/assets/logos/wikipedia.svg";
+import youtubeLogo from "@/assets/logos/youtube.svg";
 import {
   Command,
   CommandGroup,
@@ -18,6 +20,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/glass/command";
+import { Spinner } from "@/components/ui/spinner";
 import type { SearchEngineClient } from "@/lib/search-engines";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +40,8 @@ const engineLogos: Partial<Record<string, StaticImageData>> = {
   g: googleLogo,
   k: kagiLogo,
   s: startpageLogo,
+  w: wikipediaLogo,
+  y: youtubeLogo,
 };
 
 function resolveSearch(
@@ -73,31 +78,37 @@ function EngineLogo({
   size = "default",
 }: {
   engine: SearchEngineClient;
-  size?: "default" | "large";
+  size?: "compact" | "default" | "large";
 }) {
   const logo = engineLogos[engine.nickname];
-  const dimensions = size === "large" ? "size-6" : "size-5";
-
-  if (logo) {
-    return (
-      <Image
-        src={logo}
-        alt=""
-        aria-hidden="true"
-        className={cn("shrink-0 rounded-full", dimensions)}
-      />
-    );
-  }
+  const circleDimensions = size === "large" ? "size-8" : "size-7";
+  const logoDimensions =
+    size === "large"
+      ? "size-[1.125rem]"
+      : size === "compact"
+        ? "size-[0.875rem]"
+        : "size-4";
 
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-foreground/10 font-mono text-[0.65rem] font-semibold text-foreground",
-        dimensions,
+        "grid shrink-0 place-items-center rounded-full border border-white/40 bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:border-white/20 dark:bg-white/10",
+        circleDimensions,
       )}
     >
-      {engine.nickname.toUpperCase()}
+      {logo ? (
+        <Image
+          src={logo}
+          alt=""
+          aria-hidden="true"
+          className={cn("object-contain", logoDimensions)}
+        />
+      ) : (
+        <span className="font-mono text-[0.65rem] font-semibold text-foreground">
+          {engine.nickname.toUpperCase()}
+        </span>
+      )}
     </span>
   );
 }
@@ -157,10 +168,12 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
           Array.isArray(payload.suggestions)
         ) {
           setSuggestions(
-            payload.suggestions.filter(
-              (suggestion): suggestion is string =>
-                typeof suggestion === "string",
-            ),
+            payload.suggestions
+              .filter(
+                (suggestion): suggestion is string =>
+                  typeof suggestion === "string",
+              )
+              .slice(0, 6),
           );
         }
       } catch {
@@ -213,7 +226,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
         <Command
           variant="frosted"
           shouldFilter={false}
-          className="command-frosted relative overflow-visible rounded-[1.5rem] p-0 text-foreground shadow-[0_8px_24px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.3)]"
+          className="relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
         >
           <Controller
             control={form.control}
@@ -235,22 +248,18 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                 }}
                 placeholder={`Pesquisar com ${activeEngine.name}`}
                 wrapperClassName="p-1"
-                inputGroupClassName="h-10 rounded-[1.2rem] border-0 bg-transparent shadow-none"
-                className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85 sm:pl-52 sm:pr-14"
+                inputGroupClassName="h-11 rounded-[1.2rem] border-0 bg-transparent shadow-none"
+                className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85"
                 leading={
                   <button
                     type="button"
                     aria-label={`Selecionar motor de busca: ${activeEngine.name}`}
                     aria-expanded={isEnginePickerOpen}
                     title="Selecionar motor de busca"
-                    className="relative flex h-7 items-center gap-2 px-2 text-left outline-none transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:ring-ring sm:px-3 sm:after:absolute sm:after:top-0.5 sm:after:-right-3 sm:after:h-6 sm:after:w-px sm:after:bg-foreground/20"
+                    className="grid size-9 place-items-center rounded-xl text-left outline-none transition-[background-color,transform] duration-200 hover:bg-foreground/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => setIsEnginePickerOpen((isOpen) => !isOpen)}
                   >
-                    <EngineLogo engine={activeEngine} />
-                    <span className="hidden max-w-36 truncate text-sm font-medium sm:inline">
-                      {activeEngine.name}
-                    </span>
-                    <ChevronDown className="hidden size-3.5 opacity-70 sm:block" />
+                    <EngineLogo engine={activeEngine} size="compact" />
                   </button>
                 }
                 trailing={
@@ -267,13 +276,16 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
           />
 
           {isEnginePickerOpen ? (
-            <CommandList className="glass-frosted command-frosted absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 shadow-2xl shadow-black/20 sm:right-auto sm:left-3 sm:w-80">
-              <CommandGroup heading="Selecionar buscador">
+            <CommandList className="search-dropdown absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 backdrop-blur-lg backdrop-saturate-150 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:right-auto sm:left-3 sm:w-80">
+              <CommandGroup
+                heading="Selecionar buscador"
+                className="[&_[cmdk-group-items]]:space-y-1"
+              >
                 {engines.map((engine) => (
                   <CommandItem
                     key={engine.nickname}
                     value={engine.name}
-                    className="min-h-11 rounded-xl bg-transparent px-3 py-2.5 text-sm data-selected:bg-white/15 data-selected:text-foreground"
+                    className="min-h-11 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
                     onSelect={() => {
                       form.setValue("selectedEngineNickname", engine.nickname, {
                         shouldDirty: true,
@@ -284,10 +296,12 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                     <EngineLogo engine={engine} size="large" />
                     <span>{engine.name}</span>
                     {engine.nickname === activeEngine.nickname ? (
-                      <Check
-                        className="ml-auto size-4"
-                        aria-label="Selecionado"
-                      />
+                      <span
+                        data-slot="command-shortcut"
+                        className="ml-auto rounded-full border border-foreground/15 bg-foreground/10 px-2 py-0.5 text-[0.6875rem] font-medium tracking-wide text-foreground"
+                      >
+                        Atual
+                      </span>
                     ) : (
                       <CommandShortcut>{engine.nickname}</CommandShortcut>
                     )}
@@ -298,21 +312,26 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
           ) : null}
 
           {showSuggestionList ? (
-            <CommandList className="glass-frosted command-frosted absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 shadow-2xl shadow-black/20">
+            <CommandList className="search-dropdown absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 backdrop-blur-lg backdrop-saturate-150 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <CommandGroup
-                heading={`Sugestões do ${resolvedSearch.engine.name}`}
+                heading={
+                  <span className="flex w-full items-center justify-between gap-3">
+                    <span>Sugestões do {resolvedSearch.engine.name}</span>
+                    {isLoadingSuggestions ? (
+                      <Spinner
+                        aria-label="Buscando sugestões"
+                        className="size-3.5"
+                      />
+                    ) : null}
+                  </span>
+                }
+                className="[&_[cmdk-group-items]]:space-y-1"
               >
-                {isLoadingSuggestions ? (
-                  <div className="flex min-h-10 items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
-                    <LoaderCircle className="size-4 animate-spin" />
-                    Buscando sugestões…
-                  </div>
-                ) : null}
                 {suggestions.map((suggestion) => (
                   <CommandItem
                     key={suggestion}
                     value={suggestion}
-                    className="min-h-10 rounded-xl bg-transparent px-3 py-2.5 text-sm data-selected:bg-white/15 data-selected:text-foreground"
+                    className="min-h-10 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
                     onSelect={() => {
                       form.setValue("query", suggestion, { shouldDirty: true });
                       window.location.assign(
