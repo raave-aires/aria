@@ -20,8 +20,5 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
-  },
-  "registries": {
-    "@glass-ui": "https://glass-ui.crenspire.com/r/{name}.json"
   }
 }

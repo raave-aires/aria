@@ -1,10 +1,10 @@
 "use client";
 
+import { useLiveQuery } from "dexie-react-hooks";
 import { Search } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import * as React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-
 import braveLogo from "@/assets/logos/brave.svg";
 import duckDuckGoLogo from "@/assets/logos/duckduckgo.svg";
 import googleLogo from "@/assets/logos/google.svg";
@@ -19,9 +19,11 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-} from "@/components/ui/glass/command";
+} from "@/components/ui/command";
 import { Spinner } from "@/components/ui/spinner";
+import { getDb } from "@/lib/db/app-db";
 import type { SearchEngineClient } from "@/lib/search-engines";
+import { setLastSearchEngine } from "@/lib/settings/search-settings";
 import { cn } from "@/lib/utils";
 
 type SearchFormValues = {
@@ -102,6 +104,7 @@ function EngineLogo({
           src={logo}
           alt=""
           aria-hidden="true"
+          loading="eager"
           className={cn("object-contain", logoDimensions)}
         />
       ) : (
@@ -124,6 +127,10 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
       selectedEngineNickname: "d",
     },
   });
+  const savedSearchSettings = useLiveQuery(
+    () => getDb().search.get("search"),
+    [],
+  );
 
   const query = useWatch({ control: form.control, name: "query" });
   const selectedEngineNickname = useWatch({
@@ -138,6 +145,17 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
     engines.find((engine) => engine.nickname === selectedEngineNickname) ??
     engines[0];
   const activeEngine = resolvedSearch?.engine ?? selectedEngine;
+
+  React.useEffect(() => {
+    const lastEngine = savedSearchSettings?.lastEngine;
+
+    if (
+      lastEngine &&
+      engines.some((engine) => engine.nickname === lastEngine)
+    ) {
+      form.setValue("selectedEngineNickname", lastEngine);
+    }
+  }, [engines, form, savedSearchSettings?.lastEngine]);
 
   React.useEffect(() => {
     if (!resolvedSearch || resolvedSearch.term.length < 2) {
@@ -224,9 +242,8 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
     <section className="mx-auto w-full max-w-4xl" aria-label="Pesquisa na web">
       <form onSubmit={form.handleSubmit(submitSearch)} noValidate>
         <Command
-          variant="frosted"
           shouldFilter={false}
-          className="relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
+          className="surface-glass surface-tint relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
         >
           <Controller
             control={form.control}
@@ -236,21 +253,32 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                 value.trim().length > 0 || "Digite o que deseja pesquisar.",
             }}
             render={({ field: { onChange, ...field } }) => (
-              <CommandInput
-                {...field}
-                aria-label="Buscar na web"
-                aria-describedby={
-                  form.formState.errors.query ? "search-error" : undefined
-                }
-                onValueChange={(value) => {
-                  onChange(value);
-                  setIsEnginePickerOpen(false);
-                }}
-                placeholder={`Pesquisar com ${activeEngine.name}`}
-                wrapperClassName="p-1"
-                inputGroupClassName="h-11 rounded-[1.2rem] border-0 bg-transparent shadow-none"
-                className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85"
-                leading={
+              <div className="relative">
+                <CommandInput
+                  {...field}
+                  aria-label="Buscar na web"
+                  aria-describedby={
+                    form.formState.errors.query ? "search-error" : undefined
+                  }
+                  onValueChange={(value) => {
+                    onChange(value);
+                    setIsEnginePickerOpen(false);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    void form.handleSubmit(submitSearch)();
+                  }}
+                  placeholder={`Pesquisar com ${activeEngine.name}`}
+                  showSearchIcon={false}
+                  wrapperClassName="p-1"
+                  inputGroupClassName="surface-control h-11 rounded-[1.2rem] border-0 shadow-none"
+                  className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85"
+                />
+                <div className="absolute top-1/2 left-3 z-10 -translate-y-1/2">
                   <button
                     type="button"
                     aria-label={`Selecionar motor de busca: ${activeEngine.name}`}
@@ -261,8 +289,8 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                   >
                     <EngineLogo engine={activeEngine} size="compact" />
                   </button>
-                }
-                trailing={
+                </div>
+                <div className="absolute top-1/2 right-3 z-10 -translate-y-1/2">
                   <button
                     type="submit"
                     aria-label="Pesquisar"
@@ -270,13 +298,13 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                   >
                     <Search className="size-4" />
                   </button>
-                }
-              />
+                </div>
+              </div>
             )}
           />
 
           {isEnginePickerOpen ? (
-            <CommandList className="search-dropdown absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 backdrop-blur-lg backdrop-saturate-150 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:right-auto sm:left-3 sm:w-80">
+            <CommandList className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:right-auto sm:left-3 sm:w-80">
               <CommandGroup
                 heading="Selecionar buscador"
                 className="[&_[cmdk-group-items]]:space-y-1"
@@ -290,6 +318,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                       form.setValue("selectedEngineNickname", engine.nickname, {
                         shouldDirty: true,
                       });
+                      void setLastSearchEngine(engine.nickname);
                       setIsEnginePickerOpen(false);
                     }}
                   >
@@ -312,38 +341,40 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
           ) : null}
 
           {showSuggestionList ? (
-            <CommandList className="search-dropdown absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 backdrop-blur-lg backdrop-saturate-150 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <CommandGroup
-                heading={
-                  <span className="flex w-full items-center justify-between gap-3">
-                    <span>Sugestões do {resolvedSearch.engine.name}</span>
-                    {isLoadingSuggestions ? (
-                      <Spinner
-                        aria-label="Buscando sugestões"
-                        className="size-3.5"
-                      />
-                    ) : null}
-                  </span>
-                }
-                className="[&_[cmdk-group-items]]:space-y-1"
-              >
-                {suggestions.map((suggestion) => (
-                  <CommandItem
-                    key={suggestion}
-                    value={suggestion}
-                    className="min-h-10 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
-                    onSelect={() => {
-                      form.setValue("query", suggestion, { shouldDirty: true });
-                      window.location.assign(
-                        getSearchUrl(resolvedSearch.engine, suggestion),
-                      );
-                    }}
-                  >
-                    <Search className="size-4 text-muted-foreground" />
-                    {suggestion}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+            <CommandList className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              {isLoadingSuggestions ? (
+                <div className="flex items-center justify-end px-3 py-2">
+                  <Spinner
+                    aria-label="Buscando sugestões"
+                    className="size-3.5"
+                  />
+                </div>
+              ) : null}
+              {suggestions.length > 0 ? (
+                <CommandGroup
+                  heading={`Sugestões do ${resolvedSearch.engine.name}`}
+                  className="[&_[cmdk-group-items]]:space-y-1"
+                >
+                  {suggestions.map((suggestion) => (
+                    <CommandItem
+                      key={suggestion}
+                      value={suggestion}
+                      className="min-h-10 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
+                      onSelect={() => {
+                        form.setValue("query", suggestion, {
+                          shouldDirty: true,
+                        });
+                        window.location.assign(
+                          getSearchUrl(resolvedSearch.engine, suggestion),
+                        );
+                      }}
+                    >
+                      <Search className="size-4 text-muted-foreground" />
+                      {suggestion}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ) : null}
             </CommandList>
           ) : null}
         </Command>

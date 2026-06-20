@@ -10,7 +10,7 @@ test("mostra DuckDuckGo e permite escolher outro motor", async ({ page }) => {
   });
 
   await expect(
-    page.getByRole("textbox", { name: "Buscar na web" }),
+    page.getByRole("combobox", { name: "Buscar na web" }),
   ).toHaveAttribute("placeholder", "Pesquisar com DuckDuckGo");
 
   await engineButton.click();
@@ -22,7 +22,7 @@ test("mostra DuckDuckGo e permite escolher outro motor", async ({ page }) => {
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("textbox", { name: "Buscar na web" }),
+    page.getByRole("combobox", { name: "Buscar na web" }),
   ).toHaveAttribute("placeholder", "Pesquisar com Google");
 });
 
@@ -42,14 +42,9 @@ test("compacta o seletor e aplica vidro fosco com espaço entre as opções", as
   await engineButton.click();
 
   const dropdown = page.locator('[data-slot="command-list"]');
-  await expect(dropdown).toHaveClass(/search-dropdown/);
+  await expect(dropdown).toHaveClass(/surface-panel/);
 
-  const supportsBackdropFilter = await page.evaluate(() =>
-    CSS.supports("backdrop-filter", "blur(1px)"),
-  );
-  if (supportsBackdropFilter) {
-    await expect(dropdown).toHaveCSS("backdrop-filter", /blur/);
-  }
+  await expect(dropdown).toHaveCSS("--app-surface-blur", "24px");
 
   const options = page.getByRole("option");
   const firstOption = await options.nth(0).boundingBox();
@@ -94,7 +89,7 @@ test("apelido no texto tem prioridade sobre o motor selecionado", async ({
     route.fulfill({ contentType: "text/html", body: "Google results" }),
   );
 
-  const searchInput = page.getByRole("textbox", { name: "Buscar na web" });
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
   await searchInput.fill("g café especial");
   await searchInput.press("Enter");
 
@@ -104,7 +99,7 @@ test("apelido no texto tem prioridade sobre o motor selecionado", async ({
 test("apelido atualiza o motor exibido antes de enviar a pesquisa", async ({
   page,
 }) => {
-  const searchInput = page.getByRole("textbox", { name: "Buscar na web" });
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
 
   await searchInput.fill("b teste");
 
@@ -130,7 +125,7 @@ test("exibe e envia uma sugestão retornada pela API interna", async ({
     route.fulfill({ contentType: "text/html", body: "DuckDuckGo results" }),
   );
 
-  const searchInput = page.getByRole("textbox", { name: "Buscar na web" });
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
   await searchInput.fill("aria");
 
   const suggestion = page.getByRole("option", { name: "aria framework" });
@@ -144,11 +139,11 @@ test("mostra o spinner no título enquanto busca sugestões", async ({
   page,
 }) => {
   await page.route("**/api/search-suggestions**", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
     await route.fulfill({ json: { suggestions: ["aria framework"] } });
   });
 
-  await page.getByRole("textbox", { name: "Buscar na web" }).fill("aria");
+  await page.getByRole("combobox", { name: "Buscar na web" }).fill("aria");
 
   const dropdown = page.locator('[data-slot="command-list"]');
   await expect(
@@ -168,7 +163,7 @@ test("limita as sugestões visíveis e mantém a lista sem scrollbar", async ({
     route.fulfill({ json: { suggestions } }),
   );
 
-  await page.getByRole("textbox", { name: "Buscar na web" }).fill("sug");
+  await page.getByRole("combobox", { name: "Buscar na web" }).fill("sug");
 
   const dropdown = page.locator('[data-slot="command-list"]');
   await expect(dropdown.getByRole("option")).toHaveCount(6);
@@ -190,11 +185,28 @@ test("continua pesquisando quando o motor não possui sugestões", async ({
     .click();
   await page.getByRole("option", { name: "YouTube" }).click();
 
-  const searchInput = page.getByRole("textbox", { name: "Buscar na web" });
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
   await searchInput.fill("música");
   await searchInput.press("Enter");
 
   await expect(page).toHaveURL(
     /youtube\.com\/results\?search_query=m%C3%BAsica/,
   );
+});
+
+test("restaura o último motor de busca escolhido", async ({ page }) => {
+  await page
+    .getByRole("button", {
+      name: "Selecionar motor de busca: DuckDuckGo",
+    })
+    .click();
+  await page.getByRole("option", { name: "Kagi" }).click();
+
+  await page.reload();
+
+  await expect(
+    page.getByRole("button", {
+      name: "Selecionar motor de busca: Kagi",
+    }),
+  ).toBeVisible();
 });
