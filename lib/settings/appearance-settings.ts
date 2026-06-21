@@ -1,6 +1,10 @@
 import type { AppearanceSettings } from "@/lib/db/app-db";
 import { getDb } from "@/lib/db/app-db";
-import { hexToRgbTriplet, normalizeAccentColor } from "@/lib/settings/color";
+import {
+  getAccentForegroundRgb,
+  hexToRgbTriplet,
+  normalizeAccentColor,
+} from "@/lib/settings/color";
 import { defaultAppearanceSettings } from "@/lib/settings/defaults";
 
 export async function getAppearanceSettings() {
@@ -38,5 +42,9 @@ export function applyAppearanceSettings(settings: AppearanceSettings) {
   root.style.setProperty(
     "--app-accent-rgb",
     hexToRgbTriplet(normalizeAccentColor(settings.accentColor)),
+  );
+  root.style.setProperty(
+    "--app-accent-foreground-rgb",
+    getAccentForegroundRgb(normalizeAccentColor(settings.accentColor)),
   );
 }

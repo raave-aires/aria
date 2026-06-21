@@ -91,7 +91,7 @@ function SettingChoices<T extends string>({
             <Label
               key={option.value}
               htmlFor={id}
-              className="surface-control cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
+              className="surface-control appearance-choice cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
             >
               {option.label}
               <RadioGroupItem id={id} value={option.value} />
@@ -203,12 +203,14 @@ export function AppearancePopover({
             void updateAppearanceSettings({ transparency })
           }
         />
-        <SettingChoices
-          label="Desfoque"
-          options={blurOptions}
-          value={settings.blur}
-          onValueChange={(blur) => void updateAppearanceSettings({ blur })}
-        />
+        {settings.transparency !== "off" ? (
+          <SettingChoices
+            label="Desfoque"
+            options={blurOptions}
+            value={settings.blur}
+            onValueChange={(blur) => void updateAppearanceSettings({ blur })}
+          />
+        ) : null}
 
         <Separator />
 
@@ -233,36 +235,37 @@ export function AppearancePopover({
           >
             <Label
               htmlFor="accent-auto"
-              className="surface-control cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
+              className="surface-control appearance-choice cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
             >
               Automática
               <RadioGroupItem id="accent-auto" value="auto" />
             </Label>
             <Label
               htmlFor="accent-manual"
-              className="surface-control cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
+              className="surface-control appearance-choice cursor-pointer justify-between rounded-xl px-3 py-2 text-xs"
             >
               Manual
               <RadioGroupItem id="accent-manual" value="manual" />
             </Label>
           </RadioGroup>
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="accent-color">Cor manual</Label>
-            <input
-              id="accent-color"
-              aria-label="Cor de destaque manual"
-              type="color"
-              value={settings.accentColor}
-              className="size-9 cursor-pointer rounded-lg border border-border bg-transparent p-1 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={settings.accentMode !== "manual"}
-              onChange={(event) =>
-                void updateAppearanceSettings({
-                  accentMode: "manual",
-                  accentColor: event.target.value,
-                })
-              }
-            />
-          </div>
+          {settings.accentMode === "manual" ? (
+            <div className="grid gap-2">
+              <Label htmlFor="accent-color">Cor manual</Label>
+              <input
+                id="accent-color"
+                aria-label="Cor de destaque manual"
+                type="color"
+                value={settings.accentColor}
+                className="size-9 cursor-pointer rounded-lg border border-border bg-transparent p-1"
+                onChange={(event) =>
+                  void updateAppearanceSettings({
+                    accentMode: "manual",
+                    accentColor: event.target.value,
+                  })
+                }
+              />
+            </div>
+          ) : null}
         </fieldset>
 
         <Separator />

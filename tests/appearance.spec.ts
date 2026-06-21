@@ -61,6 +61,13 @@ test("persiste tema e controles de material após recarregar", async ({
   );
   await expect(page.locator("html")).toHaveAttribute("data-blur", "strong");
   await expect(page.locator("html")).toHaveAttribute("data-tint", "off");
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-slot="popover-content"]')
+        .evaluate((element) => getComputedStyle(element).backdropFilter),
+    )
+    .toContain("blur");
 
   await page.reload();
 
@@ -71,6 +78,99 @@ test("persiste tema e controles de material após recarregar", async ({
   );
   await expect(page.locator("html")).toHaveAttribute("data-blur", "strong");
   await expect(page.locator("html")).toHaveAttribute("data-tint", "off");
+});
+
+test("aplica a cor de destaque aos controles ativos e ao tint", async ({
+  page,
+}) => {
+  await page
+    .getByRole("button", { name: "Abrir configurações de aparência" })
+    .click();
+
+  const manualChoice = page
+    .getByRole("radio", { name: "Manual" })
+    .locator("..");
+  await manualChoice.click();
+  await page.getByLabel("Cor de destaque manual").evaluate((input) => {
+    const colorInput = input as HTMLInputElement;
+    const nativeValueSetter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    nativeValueSetter?.call(colorInput, "#005cc5");
+    colorInput.dispatchEvent(new Event("input", { bubbles: true }));
+    colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  await expect(page.locator("html")).toHaveCSS("--app-accent-rgb", "0 92 197");
+  await expect(manualChoice).toHaveCSS("background-color", "rgb(0, 92, 197)");
+
+  const popover = page.locator('[data-slot="popover-content"]');
+  await expect(popover).toHaveCSS("background-image", /linear-gradient/);
+  await expect(page.getByRole("switch", { name: "Tint" })).toHaveCSS(
+    "background-color",
+    "rgb(0, 92, 197)",
+  );
+  await page.getByRole("switch", { name: "Tint" }).click();
+  await expect(popover).toHaveCSS("background-image", "none");
+});
+
+test("mantém os níveis de transparência e desfoque visualmente distintos", async ({
+  page,
+}) => {
+  await page
+    .getByRole("button", { name: "Abrir configurações de aparência" })
+    .click();
+
+  const transparency = page.getByRole("radiogroup", { name: "Transparência" });
+  await transparency.getByRole("radio", { name: "Baixa" }).click();
+  await expect(page.locator("html")).toHaveCSS("--app-panel-opacity", ".84");
+
+  await transparency.getByRole("radio", { name: "Alta" }).click();
+  await expect(page.locator("html")).toHaveCSS("--app-panel-opacity", ".38");
+
+  const blur = page.getByRole("radiogroup", { name: "Desfoque" });
+  await blur.getByRole("radio", { name: "Suave" }).click();
+  await expect(page.locator("html")).toHaveCSS("--app-surface-blur", "8px");
+
+  await blur.getByRole("radio", { name: "Forte" }).click();
+  await expect(page.locator("html")).toHaveCSS("--app-surface-blur", "56px");
+});
+
+test("mostra apenas os controles de aparência relevantes", async ({ page }) => {
+  await page
+    .getByRole("button", { name: "Abrir configurações de aparência" })
+    .click();
+
+  const blur = page.getByRole("radiogroup", { name: "Desfoque" });
+  const manualColor = page.getByLabel("Cor de destaque manual");
+
+  await expect(blur).toBeVisible();
+  await expect(manualColor).toHaveCount(0);
+
+  await page
+    .getByRole("radiogroup", { name: "Transparência" })
+    .getByRole("radio", { name: "Desligada" })
+    .click();
+  await expect(blur).toHaveCount(0);
+
+  await page
+    .getByRole("radiogroup", { name: "Transparência" })
+    .getByRole("radio", { name: "Baixa" })
+    .click();
+  await expect(blur).toBeVisible();
+
+  await page
+    .getByRole("radiogroup", { name: "Modo da cor de destaque" })
+    .getByRole("radio", { name: "Manual" })
+    .click();
+  await expect(manualColor).toBeVisible();
+
+  await page
+    .getByRole("radiogroup", { name: "Modo da cor de destaque" })
+    .getByRole("radio", { name: "Automática" })
+    .click();
+  await expect(manualColor).toHaveCount(0);
 });
 
 test("salva, restaura e remove wallpaper Blob", async ({ page }) => {

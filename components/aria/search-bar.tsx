@@ -36,6 +36,8 @@ type ResolvedSearch = {
   term: string;
 };
 
+type OpenSearchDropdown = "engines" | "suggestions" | null;
+
 const engineLogos: Partial<Record<string, StaticImageData>> = {
   b: braveLogo,
   d: duckDuckGoLogo,
@@ -117,7 +119,10 @@ function EngineLogo({
 }
 
 export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
-  const [isEnginePickerOpen, setIsEnginePickerOpen] = React.useState(false);
+  const searchRegionRef = React.useRef<HTMLElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [openDropdown, setOpenDropdown] =
+    React.useState<OpenSearchDropdown>(null);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
 
@@ -158,6 +163,21 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
   }, [engines, form, savedSearchSettings?.lastEngine]);
 
   React.useEffect(() => {
+    function closeDropdownOnOutsidePress(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !searchRegionRef.current?.contains(event.target)
+      ) {
+        setOpenDropdown(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", closeDropdownOnOutsidePress);
+    return () =>
+      document.removeEventListener("pointerdown", closeDropdownOnOutsidePress);
+  }, []);
+
+  React.useEffect(() => {
     if (!resolvedSearch || resolvedSearch.term.length < 2) {
       setIsLoadingSuggestions(false);
       setSuggestions([]);
@@ -165,9 +185,9 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
     }
 
     const controller = new AbortController();
+    setIsLoadingSuggestions(true);
+    setSuggestions([]);
     const timeout = window.setTimeout(async () => {
-      setIsLoadingSuggestions(true);
-
       try {
         const params = new URLSearchParams({
           engine: resolvedSearch.engine.nickname,
@@ -218,6 +238,8 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
       engines,
     );
 
+    setOpenDropdown(null);
+
     if (!search?.term) {
       form.setError("query", {
         message: "Digite o que deseja pesquisar.",
@@ -233,17 +255,21 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
   }
 
   const showSuggestionList =
-    !isEnginePickerOpen &&
+    openDropdown === "suggestions" &&
     resolvedSearch !== null &&
     resolvedSearch.term.length >= 2 &&
     (isLoadingSuggestions || suggestions.length > 0);
 
   return (
-    <section className="mx-auto w-full max-w-4xl" aria-label="Pesquisa na web">
+    <section
+      ref={searchRegionRef}
+      className="mx-auto w-full max-w-4xl"
+      aria-label="Pesquisa na web"
+    >
       <form onSubmit={form.handleSubmit(submitSearch)} noValidate>
         <Command
           shouldFilter={false}
-          className="surface-glass surface-tint relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
+          className="search-shell surface-glass surface-tint relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
         >
           <Controller
             control={form.control}
@@ -256,36 +282,90 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
               <div className="relative">
                 <CommandInput
                   {...field}
+                  ref={searchInputRef}
                   aria-label="Buscar na web"
+                  aria-expanded={openDropdown !== null}
                   aria-describedby={
                     form.formState.errors.query ? "search-error" : undefined
                   }
                   onValueChange={(value) => {
                     onChange(value);
-                    setIsEnginePickerOpen(false);
+                    const nextSearch = resolveSearch(
+                      value,
+                      selectedEngineNickname,
+                      engines,
+                    );
+                    setOpenDropdown(
+                      nextSearch?.term.length && nextSearch.term.length >= 2
+                        ? "suggestions"
+                        : null,
+                    );
+                  }}
+                  onFocus={() => {
+                    if (
+                      resolvedSearch?.term.length &&
+                      resolvedSearch.term.length >= 2
+                    ) {
+                      setOpenDropdown("suggestions");
+                    }
                   }}
                   onKeyDown={(event) => {
-                    if (event.key !== "Enter") {
+                    if (event.key === "Escape") {
+                      setOpenDropdown(null);
+                      return;
+                    }
+
+                    if (
+                      (event.key === "ArrowDown" || event.key === "ArrowUp") &&
+                      openDropdown === null &&
+                      resolvedSearch?.term.length &&
+                      resolvedSearch.term.length >= 2
+                    ) {
+                      setOpenDropdown("suggestions");
+                      return;
+                    }
+
+                    if (event.key !== "Enter" || openDropdown === "engines") {
                       return;
                     }
 
                     event.preventDefault();
+                    setOpenDropdown(null);
                     void form.handleSubmit(submitSearch)();
                   }}
                   placeholder={`Pesquisar com ${activeEngine.name}`}
                   showSearchIcon={false}
                   wrapperClassName="p-1"
-                  inputGroupClassName="surface-control h-11 rounded-[1.2rem] border-0 shadow-none"
+                  inputGroupClassName="search-input-control surface-control h-11 rounded-[1.2rem] shadow-none"
                   className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85"
                 />
                 <div className="absolute top-1/2 left-3 z-10 -translate-y-1/2">
                   <button
                     type="button"
                     aria-label={`Selecionar motor de busca: ${activeEngine.name}`}
-                    aria-expanded={isEnginePickerOpen}
+                    aria-expanded={openDropdown === "engines"}
+                    aria-haspopup="listbox"
                     title="Selecionar motor de busca"
                     className="grid size-9 place-items-center rounded-xl text-left outline-none transition-[background-color,transform] duration-200 hover:bg-foreground/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => setIsEnginePickerOpen((isOpen) => !isOpen)}
+                    onClick={() =>
+                      setOpenDropdown((currentDropdown) =>
+                        currentDropdown === "engines" ? null : "engines",
+                      )
+                    }
+                    onKeyDown={(event) => {
+                      if (
+                        event.key !== "ArrowDown" &&
+                        event.key !== "ArrowUp"
+                      ) {
+                        return;
+                      }
+
+                      event.preventDefault();
+                      setOpenDropdown("engines");
+                      window.requestAnimationFrame(() =>
+                        searchInputRef.current?.focus(),
+                      );
+                    }}
                   >
                     <EngineLogo engine={activeEngine} size="compact" />
                   </button>
@@ -303,8 +383,11 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
             )}
           />
 
-          {isEnginePickerOpen ? (
-            <CommandList className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:right-auto sm:left-3 sm:w-80">
+          {openDropdown === "engines" ? (
+            <CommandList
+              label="Motores de busca"
+              className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(28rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:right-auto sm:left-3 sm:w-80"
+            >
               <CommandGroup
                 heading="Selecionar buscador"
                 className="[&_[cmdk-group-items]]:space-y-1"
@@ -319,7 +402,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                         shouldDirty: true,
                       });
                       void setLastSearchEngine(engine.nickname);
-                      setIsEnginePickerOpen(false);
+                      setOpenDropdown(null);
                     }}
                   >
                     <EngineLogo engine={engine} size="large" />
@@ -341,7 +424,10 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
           ) : null}
 
           {showSuggestionList ? (
-            <CommandList className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <CommandList
+              label={`Sugestões do ${resolvedSearch.engine.name}`}
+              className="surface-panel surface-tint absolute top-[calc(100%+0.8rem)] right-0 left-0 z-30 max-h-[min(24rem,calc(100svh-12rem))] rounded-[1.5rem] p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
               {isLoadingSuggestions ? (
                 <div className="flex items-center justify-end px-3 py-2">
                   <Spinner
@@ -361,6 +447,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                       value={suggestion}
                       className="min-h-10 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
                       onSelect={() => {
+                        setOpenDropdown(null);
                         form.setValue("query", suggestion, {
                           shouldDirty: true,
                         });

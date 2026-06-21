@@ -76,10 +76,26 @@ const CommandInput = React.forwardRef<
       inputGroupClassName,
       wrapperClassName,
       showSearchIcon = true,
+      "aria-expanded": ariaExpanded,
       ...props
     },
     ref,
   ) => {
+    const inputRef = React.useRef<React.ElementRef<typeof CommandPrimitive.Input>>(
+      null,
+    );
+
+    React.useImperativeHandle(
+      ref,
+      () => inputRef.current as React.ElementRef<typeof CommandPrimitive.Input>,
+    );
+
+    React.useLayoutEffect(() => {
+      if (ariaExpanded !== undefined) {
+        inputRef.current?.setAttribute("aria-expanded", String(ariaExpanded));
+      }
+    }, [ariaExpanded]);
+
     return (
       <div
         data-slot="command-input-wrapper"
@@ -87,7 +103,7 @@ const CommandInput = React.forwardRef<
       >
         <InputGroup className={cn("h-9 bg-input/30", inputGroupClassName)}>
           <CommandPrimitive.Input
-            ref={ref}
+            ref={inputRef}
             data-slot="command-input"
             className={cn(
               "w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",

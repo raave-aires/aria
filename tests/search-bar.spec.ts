@@ -82,6 +82,61 @@ test("compacta o seletor e aplica vidro fosco com espaço entre as opções", as
   ).toBeLessThanOrEqual(1);
 });
 
+test("mantém apenas um dropdown aberto e o fecha ao clicar fora", async ({
+  page,
+}) => {
+  await page.route("**/api/search-suggestions**", (route) =>
+    route.fulfill({ json: { suggestions: ["aria framework"] } }),
+  );
+
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
+  await searchInput.fill("aria");
+  await expect(
+    page.getByRole("option", { name: "aria framework" }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("button", {
+      name: "Selecionar motor de busca: DuckDuckGo",
+    })
+    .click();
+
+  await expect(page.getByRole("option", { name: "Google" })).toBeVisible();
+  await expect(
+    page.getByRole("option", { name: "aria framework" }),
+  ).toHaveCount(0);
+
+  await page.mouse.click(10, 10);
+  await expect(page.locator('[data-slot="command-list"]')).toHaveCount(0);
+});
+
+test("permite navegar os dropdowns com as setas", async ({ page }) => {
+  await page.route("**/api/search-suggestions**", (route) =>
+    route.fulfill({ json: { suggestions: ["aria framework", "aria router"] } }),
+  );
+
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
+  await searchInput.fill("aria");
+  await expect(
+    page.getByRole("option", { name: "aria framework" }),
+  ).toBeVisible();
+
+  await searchInput.press("ArrowDown");
+  await expect(
+    page.locator('[data-slot="command-item"][data-selected="true"]'),
+  ).toHaveCount(1);
+
+  await page
+    .getByRole("button", {
+      name: "Selecionar motor de busca: DuckDuckGo",
+    })
+    .click();
+  await searchInput.press("ArrowDown");
+  await expect(
+    page.locator('[data-slot="command-item"][data-selected="true"]'),
+  ).toHaveCount(1);
+});
+
 test("apelido no texto tem prioridade sobre o motor selecionado", async ({
   page,
 }) => {
