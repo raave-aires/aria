@@ -26,6 +26,29 @@ test("mostra DuckDuckGo e permite escolher outro motor", async ({ page }) => {
   ).toHaveAttribute("placeholder", "Pesquisar com Google");
 });
 
+test("renderiza o mecanismo persistido antes da hidratação do Dexie", async ({
+  page,
+}) => {
+  await page.context().addCookies([
+    {
+      name: "aria-search-engine",
+      value: "y",
+      url: "http://127.0.0.1:3000",
+    },
+  ]);
+
+  await page.goto("/", { waitUntil: "commit" });
+
+  await expect(
+    page.getByRole("combobox", { name: "Buscar na web" }),
+  ).toHaveAttribute("placeholder", "Pesquisar com YouTube");
+  await expect(
+    page.getByRole("button", {
+      name: "Selecionar motor de busca: YouTube",
+    }),
+  ).toBeVisible();
+});
+
 test("compacta o seletor e aplica vidro fosco com espaço entre as opções", async ({
   page,
 }) => {
@@ -135,6 +158,32 @@ test("permite navegar os dropdowns com as setas", async ({ page }) => {
   await expect(
     page.locator('[data-slot="command-item"][data-selected="true"]'),
   ).toHaveCount(1);
+});
+
+test("Enter confirma a sugestão destacada pelas setas", async ({ page }) => {
+  await page.route("**/api/search-suggestions**", (route) =>
+    route.fulfill({
+      json: { suggestions: ["teste de velocidade", "telegram"] },
+    }),
+  );
+  await page.route("https://duckduckgo.com/**", (route) =>
+    route.fulfill({ contentType: "text/html", body: "DuckDuckGo results" }),
+  );
+
+  const searchInput = page.getByRole("combobox", { name: "Buscar na web" });
+  await searchInput.fill("te");
+  await expect(
+    page.getByRole("option", { name: "teste de velocidade" }),
+  ).toBeVisible();
+
+  await searchInput.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "telegram" })).toHaveAttribute(
+    "data-selected",
+    "true",
+  );
+  await searchInput.press("Enter");
+
+  await expect(page).toHaveURL(/duckduckgo\.com\/\?q=telegram/);
 });
 
 test("apelido no texto tem prioridade sobre o motor selecionado", async ({

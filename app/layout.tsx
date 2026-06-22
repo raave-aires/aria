@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
+import type { CSSProperties } from "react";
 import "./globals.css";
 import { AppearanceProvider } from "@/components/providers/appearance-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { getAccentForegroundRgb, hexToRgbTriplet } from "@/lib/settings/color";
+import { defaultAppearanceSettings } from "@/lib/settings/defaults";
+import {
+  APPEARANCE_COOKIE,
+  parseAppearanceCookie,
+} from "@/lib/settings/persistence-cookie";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,25 +27,43 @@ export const metadata: Metadata = {
   description: "sua nova aba personalizada",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialAppearance =
+    parseAppearanceCookie(cookieStore.get(APPEARANCE_COOKIE)?.value) ??
+    defaultAppearanceSettings;
+  const rootStyle = {
+    "--app-accent-rgb": hexToRgbTriplet(initialAppearance.accentColor),
+    "--app-accent-foreground-rgb": getAccentForegroundRgb(
+      initialAppearance.accentColor,
+    ),
+  } as CSSProperties;
+
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${initialAppearance.theme === "dark" ? " dark" : ""}`}
+      data-theme={initialAppearance.theme}
+      data-transparency={initialAppearance.transparency}
+      data-blur={initialAppearance.blur}
+      data-tint={initialAppearance.tint ? "on" : "off"}
+      style={rootStyle}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme={initialAppearance.theme}
           enableSystem
           disableTransitionOnChange
         >
-          <AppearanceProvider>{children}</AppearanceProvider>
+          <AppearanceProvider initialSettings={initialAppearance}>
+            {children}
+          </AppearanceProvider>
         </ThemeProvider>
       </body>
     </html>

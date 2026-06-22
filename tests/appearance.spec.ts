@@ -33,6 +33,39 @@ test("hidrata a aparência padrão e usa o wallpaper local", async ({ page }) =>
   );
 });
 
+test("renderiza a aparência persistida antes da hidratação do Dexie", async ({
+  page,
+}) => {
+  await page.context().addCookies([
+    {
+      name: "aria-appearance",
+      value: encodeURIComponent(
+        JSON.stringify({
+          theme: "dark",
+          transparency: "low",
+          blur: "strong",
+          tint: true,
+          accentMode: "manual",
+          accentColor: "#005cc5",
+          updatedAt: "2026-06-21T00:00:00.000Z",
+        }),
+      ),
+      url: "http://127.0.0.1:3000",
+    },
+  ]);
+
+  await page.goto("/", { waitUntil: "commit" });
+
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-transparency",
+    "low",
+  );
+  await expect(page.locator("html")).toHaveAttribute("data-blur", "strong");
+  await expect(page.locator("html")).toHaveAttribute("data-tint", "on");
+  await expect(page.locator("html")).toHaveCSS("--app-accent-rgb", "0 92 197");
+});
+
 test("persiste tema e controles de material após recarregar", async ({
   page,
 }) => {

@@ -6,6 +6,7 @@ import {
   normalizeAccentColor,
 } from "@/lib/settings/color";
 import { defaultAppearanceSettings } from "@/lib/settings/defaults";
+import { writeAppearanceCookie } from "@/lib/settings/persistence-cookie";
 
 export async function getAppearanceSettings() {
   return (
@@ -21,6 +22,7 @@ export async function saveAppearanceSettings(settings: AppearanceSettings) {
   };
 
   await getDb().appearance.put(nextSettings);
+  writeAppearanceCookie(nextSettings);
   return nextSettings;
 }
 

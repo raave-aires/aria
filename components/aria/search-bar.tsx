@@ -23,6 +23,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { getDb } from "@/lib/db/app-db";
 import type { SearchEngineClient } from "@/lib/search-engines";
+import { writeSearchEngineCookie } from "@/lib/settings/persistence-cookie";
 import { setLastSearchEngine } from "@/lib/settings/search-settings";
 import { cn } from "@/lib/utils";
 
@@ -118,18 +119,29 @@ function EngineLogo({
   );
 }
 
-export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
+export function SearchBar({
+  engines,
+  initialEngineNickname = "d",
+}: {
+  engines: SearchEngineClient[];
+  initialEngineNickname?: string;
+}) {
   const searchRegionRef = React.useRef<HTMLElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [openDropdown, setOpenDropdown] =
     React.useState<OpenSearchDropdown>(null);
+  const [hasKeyboardSelection, setHasKeyboardSelection] = React.useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
 
   const form = useForm<SearchFormValues>({
     defaultValues: {
       query: "",
-      selectedEngineNickname: "d",
+      selectedEngineNickname: engines.some(
+        (engine) => engine.nickname === initialEngineNickname,
+      )
+        ? initialEngineNickname
+        : "d",
     },
   });
   const savedSearchSettings = useLiveQuery(
@@ -159,6 +171,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
       engines.some((engine) => engine.nickname === lastEngine)
     ) {
       form.setValue("selectedEngineNickname", lastEngine);
+      writeSearchEngineCookie(lastEngine);
     }
   }, [engines, form, savedSearchSettings?.lastEngine]);
 
@@ -169,6 +182,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
         !searchRegionRef.current?.contains(event.target)
       ) {
         setOpenDropdown(null);
+        setHasKeyboardSelection(false);
       }
     }
 
@@ -239,6 +253,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
     );
 
     setOpenDropdown(null);
+    setHasKeyboardSelection(false);
 
     if (!search?.term) {
       form.setError("query", {
@@ -290,6 +305,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                   }
                   onValueChange={(value) => {
                     onChange(value);
+                    setHasKeyboardSelection(false);
                     const nextSearch = resolveSearch(
                       value,
                       selectedEngineNickname,
@@ -312,20 +328,32 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                   onKeyDown={(event) => {
                     if (event.key === "Escape") {
                       setOpenDropdown(null);
+                      setHasKeyboardSelection(false);
+                      return;
+                    }
+
+                    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                      if (
+                        openDropdown === null &&
+                        resolvedSearch?.term.length &&
+                        resolvedSearch.term.length >= 2
+                      ) {
+                        setOpenDropdown("suggestions");
+                      } else if (openDropdown !== null) {
+                        setHasKeyboardSelection(true);
+                      }
+
+                      return;
+                    }
+
+                    if (event.key !== "Enter") {
                       return;
                     }
 
                     if (
-                      (event.key === "ArrowDown" || event.key === "ArrowUp") &&
-                      openDropdown === null &&
-                      resolvedSearch?.term.length &&
-                      resolvedSearch.term.length >= 2
+                      openDropdown === "engines" ||
+                      (openDropdown === "suggestions" && hasKeyboardSelection)
                     ) {
-                      setOpenDropdown("suggestions");
-                      return;
-                    }
-
-                    if (event.key !== "Enter" || openDropdown === "engines") {
                       return;
                     }
 
@@ -335,7 +363,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                   }}
                   placeholder={`Pesquisar com ${activeEngine.name}`}
                   showSearchIcon={false}
-                  wrapperClassName="p-1"
+                  wrapperClassName="p-0"
                   inputGroupClassName="search-input-control surface-control h-11 rounded-[1.2rem] shadow-none"
                   className="pl-14 pr-14 text-base placeholder:text-muted-foreground/85"
                 />
@@ -347,11 +375,12 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                     aria-haspopup="listbox"
                     title="Selecionar motor de busca"
                     className="grid size-9 place-items-center rounded-xl text-left outline-none transition-[background-color,transform] duration-200 hover:bg-foreground/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() =>
+                    onClick={() => {
+                      setHasKeyboardSelection(false);
                       setOpenDropdown((currentDropdown) =>
                         currentDropdown === "engines" ? null : "engines",
-                      )
-                    }
+                      );
+                    }}
                     onKeyDown={(event) => {
                       if (
                         event.key !== "ArrowDown" &&
@@ -362,6 +391,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
 
                       event.preventDefault();
                       setOpenDropdown("engines");
+                      setHasKeyboardSelection(false);
                       window.requestAnimationFrame(() =>
                         searchInputRef.current?.focus(),
                       );
@@ -403,6 +433,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                       });
                       void setLastSearchEngine(engine.nickname);
                       setOpenDropdown(null);
+                      setHasKeyboardSelection(false);
                     }}
                   >
                     <EngineLogo engine={engine} size="large" />
@@ -448,6 +479,7 @@ export function SearchBar({ engines }: { engines: SearchEngineClient[] }) {
                       className="min-h-10 rounded-xl px-3 py-2.5 text-sm data-selected:text-foreground"
                       onSelect={() => {
                         setOpenDropdown(null);
+                        setHasKeyboardSelection(false);
                         form.setValue("query", suggestion, {
                           shouldDirty: true,
                         });
