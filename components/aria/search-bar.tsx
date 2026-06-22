@@ -284,7 +284,7 @@ export function SearchBar({
       <form onSubmit={form.handleSubmit(submitSearch)} noValidate>
         <Command
           shouldFilter={false}
-          className="search-shell surface-glass surface-tint relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
+          className="search-shell relative overflow-visible rounded-[1.5rem] p-0 text-foreground"
         >
           <Controller
             control={form.control}
@@ -294,7 +294,7 @@ export function SearchBar({
                 value.trim().length > 0 || "Digite o que deseja pesquisar.",
             }}
             render={({ field: { onChange, ...field } }) => (
-              <div className="relative">
+              <div className="surface-glass surface-tint relative rounded-[1.5rem]">
                 <CommandInput
                   {...field}
                   ref={searchInputRef}

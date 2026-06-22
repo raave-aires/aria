@@ -269,7 +269,7 @@ html[data-tint="off"] .surface-tint {
   background-image: none;
 }
 
-.search-shell.surface-glass,
+.search-shell .surface-glass,
 .search-input-control.surface-control {
   border-color: transparent;
 }

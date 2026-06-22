@@ -183,7 +183,8 @@ export function AppearancePopover({
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         align="end"
-        className="surface-panel surface-tint max-h-[min(42rem,calc(100svh-2rem))] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto"
+        sideOffset={12}
+        className="surface-panel surface-tint max-h-[min(42rem,calc(100svh-2rem))] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         <PopoverHeader>
           <PopoverTitle>Aparência</PopoverTitle>

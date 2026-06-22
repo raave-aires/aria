@@ -16,8 +16,19 @@ export function Background({
   src = Default,
   alt = "Imagem de uma montanha",
 }: BackgroundProps) {
-  const wallpaper = useLiveQuery(() => getDb().wallpapers.get("current"), []);
+  // `null` = still loading (default); `undefined` = no record; otherwise the record.
+  const wallpaper = useLiveQuery(
+    () => getDb().wallpapers.get("current"),
+    [],
+    null,
+  );
   const [objectUrl, setObjectUrl] = useState<string>();
+
+  // The component is ready to display when:
+  //  - the DB query has resolved (wallpaper !== null), AND
+  //  - if a wallpaper blob exists, its objectUrl has been created.
+  const queryResolved = wallpaper !== null;
+  const ready = queryResolved && (!wallpaper?.blob || Boolean(objectUrl));
 
   useEffect(() => {
     if (!wallpaper?.blob) {
@@ -43,7 +54,8 @@ export function Background({
       sizes="100vw"
       priority
       unoptimized={Boolean(objectUrl)}
-      className="z-0 object-cover"
+      className={`z-0 object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
     />
   );
 }
+
