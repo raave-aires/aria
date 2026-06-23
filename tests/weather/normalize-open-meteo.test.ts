@@ -15,6 +15,9 @@ describe("normalizeOpenMeteoForecast", () => {
 			temperature: 27.2,
 			apparentTemperature: 32.1,
 			precipitation: 0,
+			precipitationLabel: "Sem chuva relevante",
+			cloudCover: 48,
+			visualWeatherCode: 2,
 			uvLabel: "Moderado",
 			updatedLabel: "09:30",
 		});
@@ -28,10 +31,37 @@ describe("normalizeOpenMeteoForecast", () => {
 		);
 
 		expect(forecast.hourly).toHaveLength(12);
-		expect(forecast.hourly[0]).toMatchObject({ timeLabel: "10h", uvIndex: 3 });
+		expect(forecast.hourly[0]).toMatchObject({
+			timeLabel: "10h",
+			cloudCover: 44,
+			uvIndex: 3,
+		});
 		expect(forecast.hourly.at(-1)).toMatchObject({
 			timeLabel: "21h",
 			isDay: false,
+		});
+	});
+
+	it("preserva o céu visual quando um código de chuva tem precipitação irrelevante", () => {
+		const forecast = normalizeOpenMeteoForecast(
+			{
+				...openMeteoForecastFixture,
+				current: {
+					...openMeteoForecastFixture.current,
+					weather_code: 61,
+					precipitation: 0.1,
+					cloud_cover: 48,
+				},
+			},
+			defaultWeatherLocation,
+		);
+
+		expect(forecast.current).toMatchObject({
+			conditionLabel: "Parcialmente nublado",
+			precipitation: 0.1,
+			precipitationLabel: "Sem chuva relevante",
+			weatherCode: 61,
+			visualWeatherCode: 2,
 		});
 	});
 

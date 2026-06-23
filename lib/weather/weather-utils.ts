@@ -15,6 +15,71 @@ const numberFormat = new Intl.NumberFormat("pt-BR", {
 	minimumFractionDigits: 0,
 });
 
+const rainWeatherCodes = new Set([
+	51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82,
+]);
+
+type WeatherConditionInput = {
+	weatherCode: number;
+	precipitation: number;
+	cloudCover: number | null;
+};
+
+function getSkyWeatherCode(cloudCover: number | null) {
+	if (cloudCover === null) {
+		return 2;
+	}
+
+	if (cloudCover <= 20) return 0;
+	if (cloudCover <= 65) return 2;
+
+	return 3;
+}
+
+function getWeatherCodeLabel(weatherCode: number) {
+	switch (weatherCode) {
+		case 0:
+			return "Céu limpo";
+		case 1:
+		case 2:
+			return "Parcialmente nublado";
+		case 3:
+			return "Nublado";
+		case 45:
+		case 48:
+			return "Neblina";
+		case 71:
+		case 73:
+		case 77:
+			return "Neve";
+		case 75:
+			return "Neve forte";
+		case 85:
+		case 86:
+			return "Pancadas de neve";
+		case 95:
+			return "Trovoadas";
+		case 96:
+		case 99:
+			return "Trovoadas com granizo";
+		default:
+			return "Condições variáveis";
+	}
+}
+
+function getConditionPrecipitationLabel(value: number) {
+	switch (getPrecipitationLabel(value)) {
+		case "Possível garoa":
+			return "Garoa";
+		case "Chuva fraca":
+		case "Chuva moderada":
+		case "Chuva forte":
+			return getPrecipitationLabel(value);
+		default:
+			return null;
+	}
+}
+
 function getDatePart(value: string) {
 	return value.split("T")[0] ?? value;
 }
@@ -79,6 +144,40 @@ export function formatSpeed(value: number) {
 
 export function formatPrecipitation(value: number) {
 	return `${numberFormat.format(value)} mm`;
+}
+
+export function getPrecipitationLabel(value: number) {
+	if (value < 0.2) return "Sem chuva relevante";
+	if (value < 1) return "Possível garoa";
+	if (value < 4) return "Chuva fraca";
+	if (value < 10) return "Chuva moderada";
+
+	return "Chuva forte";
+}
+
+export function getWeatherCondition({
+	weatherCode,
+	precipitation,
+	cloudCover,
+}: WeatherConditionInput) {
+	const isRainCode = rainWeatherCodes.has(weatherCode);
+	const visualWeatherCode =
+		isRainCode && precipitation < 0.2
+			? getSkyWeatherCode(cloudCover)
+			: weatherCode;
+	const precipitationCondition = getConditionPrecipitationLabel(precipitation);
+
+	if (isRainCode && precipitationCondition) {
+		return {
+			label: precipitationCondition,
+			visualWeatherCode,
+		};
+	}
+
+	return {
+		label: getWeatherCodeLabel(visualWeatherCode),
+		visualWeatherCode,
+	};
 }
 
 export function formatUvIndex(value: number | null) {

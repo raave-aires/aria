@@ -91,7 +91,7 @@ function HourlyForecast({ items }: { items: HourlyForecastItem[] }) {
 							{item.timeLabel}
 						</p>
 						<WeatherIcon
-							weatherCode={item.weatherCode}
+							weatherCode={item.visualWeatherCode}
 							isDay={item.isDay}
 							className="size-9"
 						/>

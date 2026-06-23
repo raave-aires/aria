@@ -32,10 +32,13 @@ export type CurrentWeather = {
 	temperature: number;
 	apparentTemperature: number | null;
 	precipitation: number;
+	precipitationLabel: string;
+	cloudCover: number | null;
 	humidity: number | null;
 	uvIndex: number | null;
 	uvLabel: string | null;
 	weatherCode: number;
+	visualWeatherCode: number;
 	isDay: boolean;
 	windSpeed: number | null;
 };
@@ -44,8 +47,11 @@ export type HourlyForecastItem = {
 	timeLabel: string;
 	temperature: number;
 	precipitation: number;
+	precipitationLabel: string;
+	cloudCover: number | null;
 	uvIndex: number | null;
 	weatherCode: number;
+	visualWeatherCode: number;
 	isDay: boolean;
 	windSpeed: number | null;
 };

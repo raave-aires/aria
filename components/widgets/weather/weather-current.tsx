@@ -84,7 +84,7 @@ export function WeatherCurrentSummary({
 
 			<div className={`flex items-center ${compact ? "gap-3" : "gap-4"}`}>
 				<WeatherIcon
-					weatherCode={current.weatherCode}
+					weatherCode={current.visualWeatherCode}
 					isDay={current.isDay}
 					className={compact ? "size-20 shrink-0" : "size-24 shrink-0"}
 				/>

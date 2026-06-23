@@ -9,8 +9,24 @@ test("renderiza o widget e permite abrir as opções", async ({ page }) => {
 
 	await expect(widget).toBeVisible();
 	await expect(widget.getByRole("heading", { name: "Clima" })).toBeVisible();
+	const compactSwitcher = widget.getByRole("tablist", {
+		name: "Conteúdo do widget compacto",
+	});
+	const optionsButton = widget.getByRole("button", {
+		name: "Opções do widget de clima",
+	});
+	const [switcherBounds, optionsBounds] = await Promise.all([
+		compactSwitcher.boundingBox(),
+		optionsButton.boundingBox(),
+	]);
 
-	await page.getByRole("button", { name: "Opções do widget de clima" }).click();
+	if (!switcherBounds || !optionsBounds) {
+		throw new Error("Não foi possível medir os controles do cabeçalho.");
+	}
+
+	expect(optionsBounds.height).toBe(switcherBounds.height);
+
+	await optionsButton.click();
 	await expect(
 		page.getByRole("menuitem", { name: "Alterar cidade" }),
 	).toBeVisible();

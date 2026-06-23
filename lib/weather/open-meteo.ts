@@ -15,6 +15,7 @@ const openMeteoForecastSchema = z.object({
 		temperature_2m: z.number(),
 		apparent_temperature: z.number().nullable(),
 		precipitation: z.number(),
+		cloud_cover: z.number().nullable(),
 		relative_humidity_2m: z.number().nullable(),
 		uv_index: z.number().nullable(),
 		weather_code: z.number(),
@@ -25,6 +26,7 @@ const openMeteoForecastSchema = z.object({
 		time: z.array(z.string()),
 		temperature_2m: numberArraySchema,
 		precipitation: numberArraySchema,
+		cloud_cover: numberArraySchema,
 		uv_index: numberArraySchema,
 		weather_code: numberArraySchema,
 		is_day: numberArraySchema,
@@ -55,9 +57,9 @@ export async function getOpenMeteoForecast(location: WeatherLocation) {
 		precipitation_unit: "mm",
 		wind_speed_unit: "kmh",
 		current:
-			"temperature_2m,apparent_temperature,precipitation,relative_humidity_2m,uv_index,weather_code,is_day,wind_speed_10m",
+			"temperature_2m,apparent_temperature,precipitation,cloud_cover,relative_humidity_2m,uv_index,weather_code,is_day,wind_speed_10m",
 		hourly:
-			"temperature_2m,precipitation,uv_index,weather_code,is_day,wind_speed_10m",
+			"temperature_2m,precipitation,cloud_cover,uv_index,weather_code,is_day,wind_speed_10m",
 		daily:
 			"weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,uv_index_max,wind_speed_10m_max",
 	});

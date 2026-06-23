@@ -5,13 +5,14 @@ import type {
 	WeatherForecast,
 	WeatherLocation,
 } from "@/lib/weather/types";
-import { getWeatherSymbol } from "@/lib/weather/weather-symbols";
 import {
 	formatDailyLabel,
 	formatDateLabel,
 	formatHourLabel,
 	formatTimeLabel,
+	getPrecipitationLabel,
 	getUvLabel,
+	getWeatherCondition,
 } from "@/lib/weather/weather-utils";
 
 function numberOrNull(value: number | null | undefined) {
@@ -33,13 +34,23 @@ function getHourlyForecast(
 			const weatherCode = Math.round(
 				forecast.hourly.weather_code[itemIndex] ?? 3,
 			);
+			const precipitation = forecast.hourly.precipitation[itemIndex] ?? 0;
+			const cloudCover = numberOrNull(forecast.hourly.cloud_cover[itemIndex]);
+			const condition = getWeatherCondition({
+				weatherCode,
+				precipitation,
+				cloudCover,
+			});
 
 			return {
 				timeLabel: formatHourLabel(time),
 				temperature: forecast.hourly.temperature_2m[itemIndex] ?? 0,
-				precipitation: forecast.hourly.precipitation[itemIndex] ?? 0,
+				precipitation,
+				precipitationLabel: getPrecipitationLabel(precipitation),
+				cloudCover,
 				uvIndex: numberOrNull(forecast.hourly.uv_index[itemIndex]),
 				weatherCode,
+				visualWeatherCode: condition.visualWeatherCode,
 				isDay: forecast.hourly.is_day[itemIndex] === 1,
 				windSpeed: numberOrNull(forecast.hourly.wind_speed_10m[itemIndex]),
 			};
@@ -71,19 +82,29 @@ export function normalizeOpenMeteoForecast(
 	const weatherCode = Math.round(forecast.current.weather_code);
 	const isDay = forecast.current.is_day === 1;
 	const uvIndex = numberOrNull(forecast.current.uv_index);
+	const precipitation = forecast.current.precipitation;
+	const cloudCover = numberOrNull(forecast.current.cloud_cover);
+	const condition = getWeatherCondition({
+		weatherCode,
+		precipitation,
+		cloudCover,
+	});
 
 	return {
 		current: {
 			dateLabel: formatDateLabel(forecast.current.time),
 			updatedLabel: formatTimeLabel(forecast.current.time),
-			conditionLabel: getWeatherSymbol(weatherCode, isDay).label,
+			conditionLabel: condition.label,
 			temperature: forecast.current.temperature_2m,
 			apparentTemperature: numberOrNull(forecast.current.apparent_temperature),
-			precipitation: forecast.current.precipitation,
+			precipitation,
+			precipitationLabel: getPrecipitationLabel(precipitation),
+			cloudCover,
 			humidity: numberOrNull(forecast.current.relative_humidity_2m),
 			uvIndex,
 			uvLabel: getUvLabel(uvIndex),
 			weatherCode,
+			visualWeatherCode: condition.visualWeatherCode,
 			isDay,
 			windSpeed: numberOrNull(forecast.current.wind_speed_10m),
 		},

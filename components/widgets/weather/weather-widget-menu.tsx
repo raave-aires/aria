@@ -63,13 +63,13 @@ export function WeatherWidgetMenu({
 				<DropdownMenuTrigger asChild>
 					<Button
 						type="button"
-						variant="ghost"
-						size="icon-sm"
+						variant="outline"
+						size="icon"
 						className="rounded-full"
 						aria-label="Opções do widget de clima"
 						disabled={isPending}
 					>
-						<Ellipsis />
+						<Ellipsis className="size-3.5" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
