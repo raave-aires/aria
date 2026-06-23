@@ -56,69 +56,69 @@ import { cn } from "@/lib/utils";
 import { getWeatherSymbol } from "@/lib/weather/weather-symbols";
 
 type ThemeAssets = {
-  light: StaticImageData;
-  dark: StaticImageData;
+	light: StaticImageData;
+	dark: StaticImageData;
 };
 
 const iconAssets: Record<string, ThemeAssets> = {
-  "01d": { light: light01d, dark: dark01d },
-  "01n": { light: light01n, dark: dark01n },
-  "02d": { light: light02d, dark: dark02d },
-  "02n": { light: light02n, dark: dark02n },
-  "03d": { light: light03d, dark: dark03d },
-  "03n": { light: light03n, dark: dark03n },
-  "04": { light: light04, dark: dark04 },
-  "05d": { light: light05d, dark: dark05d },
-  "05n": { light: light05n, dark: dark05n },
-  "06d": { light: light06d, dark: dark06d },
-  "06n": { light: light06n, dark: dark06n },
-  "08d": { light: light08d, dark: dark08d },
-  "08n": { light: light08n, dark: dark08n },
-  "11": { light: light11, dark: dark11 },
-  "34": { light: light34, dark: dark34 },
-  "40d": { light: light40d, dark: dark40d },
-  "40n": { light: light40n, dark: dark40n },
-  "41d": { light: light41d, dark: dark41d },
-  "41n": { light: light41n, dark: dark41n },
-  "43d": { light: light43d, dark: dark43d },
-  "43n": { light: light43n, dark: dark43n },
-  "44d": { light: light44d, dark: dark44d },
-  "44n": { light: light44n, dark: dark44n },
-  "46": { light: light46, dark: dark46 },
-  "47": { light: light47, dark: dark47 },
-  "50": { light: light50, dark: dark50 },
+	"01d": { light: light01d, dark: dark01d },
+	"01n": { light: light01n, dark: dark01n },
+	"02d": { light: light02d, dark: dark02d },
+	"02n": { light: light02n, dark: dark02n },
+	"03d": { light: light03d, dark: dark03d },
+	"03n": { light: light03n, dark: dark03n },
+	"04": { light: light04, dark: dark04 },
+	"05d": { light: light05d, dark: dark05d },
+	"05n": { light: light05n, dark: dark05n },
+	"06d": { light: light06d, dark: dark06d },
+	"06n": { light: light06n, dark: dark06n },
+	"08d": { light: light08d, dark: dark08d },
+	"08n": { light: light08n, dark: dark08n },
+	"11": { light: light11, dark: dark11 },
+	"34": { light: light34, dark: dark34 },
+	"40d": { light: light40d, dark: dark40d },
+	"40n": { light: light40n, dark: dark40n },
+	"41d": { light: light41d, dark: dark41d },
+	"41n": { light: light41n, dark: dark41n },
+	"43d": { light: light43d, dark: dark43d },
+	"43n": { light: light43n, dark: dark43n },
+	"44d": { light: light44d, dark: dark44d },
+	"44n": { light: light44n, dark: dark44n },
+	"46": { light: light46, dark: dark46 },
+	"47": { light: light47, dark: dark47 },
+	"50": { light: light50, dark: dark50 },
 };
 
 export function WeatherIcon({
-  weatherCode,
-  isDay,
-  className,
+	weatherCode,
+	isDay,
+	className,
 }: {
-  weatherCode: number;
-  isDay: boolean;
-  className?: string;
+	weatherCode: number;
+	isDay: boolean;
+	className?: string;
 }) {
-  const symbol = getWeatherSymbol(weatherCode, isDay);
-  const assets = iconAssets[symbol.asset] ?? iconAssets["04"];
+	const symbol = getWeatherSymbol(weatherCode, isDay);
+	const assets = iconAssets[symbol.asset] ?? iconAssets["04"];
 
-  return (
-    <span
-      role="img"
-      aria-label={symbol.label}
-      className={cn("block", className)}
-    >
-      <Image
-        src={assets.light}
-        alt=""
-        aria-hidden="true"
-        className="size-full object-contain dark:hidden"
-      />
-      <Image
-        src={assets.dark}
-        alt=""
-        aria-hidden="true"
-        className="hidden size-full object-contain dark:block"
-      />
-    </span>
-  );
+	return (
+		<span
+			role="img"
+			aria-label={symbol.label}
+			className={cn("block", className)}
+		>
+			<Image
+				src={assets.light}
+				alt=""
+				aria-hidden="true"
+				className="size-full object-contain dark:hidden"
+			/>
+			<Image
+				src={assets.dark}
+				alt=""
+				aria-hidden="true"
+				className="hidden size-full object-contain dark:block"
+			/>
+		</span>
+	);
 }

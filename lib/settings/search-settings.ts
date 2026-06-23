@@ -5,31 +5,31 @@ import { defaultSearchSettings } from "@/lib/settings/defaults";
 import { writeSearchEngineCookie } from "@/lib/settings/persistence-cookie";
 
 export function isKnownSearchEngine(nickname: string) {
-  return searchEngines.some((engine) => engine.nickname === nickname);
+	return searchEngines.some((engine) => engine.nickname === nickname);
 }
 
 export async function getSearchSettings() {
-  const settings = await getDb().search.get("search");
+	const settings = await getDb().search.get("search");
 
-  if (!settings || !isKnownSearchEngine(settings.lastEngine)) {
-    return defaultSearchSettings;
-  }
+	if (!settings || !isKnownSearchEngine(settings.lastEngine)) {
+		return defaultSearchSettings;
+	}
 
-  return settings;
+	return settings;
 }
 
 export async function setLastSearchEngine(lastEngine: SearchEngineNickname) {
-  if (!isKnownSearchEngine(lastEngine)) {
-    return defaultSearchSettings;
-  }
+	if (!isKnownSearchEngine(lastEngine)) {
+		return defaultSearchSettings;
+	}
 
-  const settings = {
-    id: "search" as const,
-    lastEngine,
-    updatedAt: new Date().toISOString(),
-  };
+	const settings = {
+		id: "search" as const,
+		lastEngine,
+		updatedAt: new Date().toISOString(),
+	};
 
-  await getDb().search.put(settings);
-  writeSearchEngineCookie(lastEngine);
-  return settings;
+	await getDb().search.put(settings);
+	writeSearchEngineCookie(lastEngine);
+	return settings;
 }

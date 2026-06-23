@@ -1,46 +1,46 @@
 {
-  "searchEngines": [
-    {
-      "name": "Brave Search",
-      "nickname": "b",
-      "search-url": "https://search.brave.com/search?q=%s",
-      "suggestions-url": "https://search.brave.com/api/suggest?q=%s"
-    },
-    {
-      "name": "DuckDuckGo",
-      "nickname": "d",
-      "search-url": "https://duckduckgo.com/?q=%s",
-      "suggestions-url": "https://duckduckgo.com/ac/?q=%s&type=list"
-    },
-    {
-      "name": "Google",
-      "nickname": "g",
-      "search-url": "https://www.google.com/search?q=%s",
-      "suggestions-url": "https://www.google.com/complete/search?client=firefox&q=%s"
-    },
-    {
-      "name": "Kagi",
-      "nickname": "k",
-      "search-url": "https://kagi.com/search?q=%s",
-      "suggestions-url": "https://kagi.com/api/autosuggest?q=%s"
-    },
-    {
-      "name": "Startpage",
-      "nickname": "s",
-      "search-url": "https://www.startpage.com/do/search?q=%s",
-      "suggestions-url": "https://www.startpage.com/suggestions?q=%s"
-    },
-    {
-      "name": "Wikipédia",
-      "nickname": "w",
-      "search-url": "https://pt.wikipedia.org/wiki/Special:Search?search=%s",
-      "suggestions-url": "https://pt.wikipedia.org/w/api.php?action=opensearch&search=%s"
-    },
-    {
-      "name": "YouTube",
-      "nickname": "y",
-      "search-url": "https://www.youtube.com/results?search_query=%s",
-      "suggestions-url": null
-    }
-  ]
+	"searchEngines": [
+		{
+			"name": "Brave Search",
+			"nickname": "b",
+			"search-url": "https://search.brave.com/search?q=%s",
+			"suggestions-url": "https://search.brave.com/api/suggest?q=%s"
+		},
+		{
+			"name": "DuckDuckGo",
+			"nickname": "d",
+			"search-url": "https://duckduckgo.com/?q=%s",
+			"suggestions-url": "https://duckduckgo.com/ac/?q=%s&type=list"
+		},
+		{
+			"name": "Google",
+			"nickname": "g",
+			"search-url": "https://www.google.com/search?q=%s",
+			"suggestions-url": "https://www.google.com/complete/search?client=firefox&q=%s"
+		},
+		{
+			"name": "Kagi",
+			"nickname": "k",
+			"search-url": "https://kagi.com/search?q=%s",
+			"suggestions-url": "https://kagi.com/api/autosuggest?q=%s"
+		},
+		{
+			"name": "Startpage",
+			"nickname": "s",
+			"search-url": "https://www.startpage.com/do/search?q=%s",
+			"suggestions-url": "https://www.startpage.com/suggestions?q=%s"
+		},
+		{
+			"name": "Wikipédia",
+			"nickname": "w",
+			"search-url": "https://pt.wikipedia.org/wiki/Special:Search?search=%s",
+			"suggestions-url": "https://pt.wikipedia.org/w/api.php?action=opensearch&search=%s"
+		},
+		{
+			"name": "YouTube",
+			"nickname": "y",
+			"search-url": "https://www.youtube.com/results?search_query=%s",
+			"suggestions-url": null
+		}
+	]
 }

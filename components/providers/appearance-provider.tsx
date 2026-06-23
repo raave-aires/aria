@@ -11,29 +11,29 @@ import { defaultAppearanceSettings } from "@/lib/settings/defaults";
 import { writeAppearanceCookie } from "@/lib/settings/persistence-cookie";
 
 export function AppearanceProvider({
-  children,
-  initialSettings = defaultAppearanceSettings,
+	children,
+	initialSettings = defaultAppearanceSettings,
 }: {
-  children: React.ReactNode;
-  initialSettings?: AppearanceSettings;
+	children: React.ReactNode;
+	initialSettings?: AppearanceSettings;
 }) {
-  const { setTheme } = useTheme();
-  const savedSettings = useLiveQuery(
-    () => getDb().appearance.get("appearance"),
-    [],
-  );
-  const settings = savedSettings ?? initialSettings;
+	const { setTheme } = useTheme();
+	const savedSettings = useLiveQuery(
+		() => getDb().appearance.get("appearance"),
+		[],
+	);
+	const settings = savedSettings ?? initialSettings;
 
-  useEffect(() => {
-    applyAppearanceSettings(settings);
-    setTheme(settings.theme);
-  }, [setTheme, settings]);
+	useEffect(() => {
+		applyAppearanceSettings(settings);
+		setTheme(settings.theme);
+	}, [setTheme, settings]);
 
-  useEffect(() => {
-    if (savedSettings) {
-      writeAppearanceCookie(savedSettings);
-    }
-  }, [savedSettings]);
+	useEffect(() => {
+		if (savedSettings) {
+			writeAppearanceCookie(savedSettings);
+		}
+	}, [savedSettings]);
 
-  return children;
+	return children;
 }
