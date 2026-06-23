@@ -11,6 +11,7 @@ import {
   APPEARANCE_COOKIE,
   parseAppearanceCookie,
 } from "@/lib/settings/persistence-cookie";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +47,7 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${initialAppearance.theme === "dark" ? " dark" : ""}`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-x-hidden antialiased${initialAppearance.theme === "dark" ? " dark" : ""}`}
       data-theme={initialAppearance.theme}
       data-transparency={initialAppearance.transparency}
       data-blur={initialAppearance.blur}
@@ -63,6 +64,7 @@ export default async function RootLayout({
         >
           <AppearanceProvider initialSettings={initialAppearance}>
             {children}
+            <Toaster />
           </AppearanceProvider>
         </ThemeProvider>
       </body>

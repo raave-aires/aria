@@ -86,6 +86,7 @@
   --app-border-rgb: 255 255 255;
   --app-surface-opacity: 0.28;
   --app-panel-opacity: 0.38;
+  --app-widget-opacity: 0.72;
   --app-control-opacity: 0.24;
   --app-surface-blur: 24px;
   --app-control-blur: 18px;
@@ -137,6 +138,7 @@
   --app-border-rgb: 190 220 225;
   --app-surface-opacity: 0.32;
   --app-panel-opacity: 0.42;
+  --app-widget-opacity: 0.76;
   --app-control-opacity: 0.28;
   --app-surface-border-opacity: 0.22;
   --app-surface-shadow-opacity: 0.34;
@@ -150,24 +152,28 @@
 html[data-transparency="off"] {
   --app-surface-opacity: 1;
   --app-panel-opacity: 1;
+  --app-widget-opacity: 1;
   --app-control-opacity: 1;
 }
 
 html[data-transparency="low"] {
   --app-surface-opacity: 0.76;
   --app-panel-opacity: 0.84;
+  --app-widget-opacity: 0.9;
   --app-control-opacity: 0.72;
 }
 
 html[data-transparency="medium"] {
   --app-surface-opacity: 0.52;
   --app-panel-opacity: 0.62;
+  --app-widget-opacity: 0.8;
   --app-control-opacity: 0.48;
 }
 
 html[data-transparency="high"] {
   --app-surface-opacity: 0.28;
   --app-panel-opacity: 0.38;
+  --app-widget-opacity: 0.72;
   --app-control-opacity: 0.24;
 }
 
@@ -237,6 +243,10 @@ html:not(.dark) {
   .surface-panel {
     background-color: rgb(var(--app-panel-rgb) / var(--app-panel-opacity));
     box-shadow: 0 16px 34px rgb(12 26 30 / var(--app-surface-shadow-opacity));
+  }
+
+  .surface-widget {
+    background-color: rgb(var(--app-panel-rgb) / var(--app-widget-opacity));
   }
 
   .surface-control {
