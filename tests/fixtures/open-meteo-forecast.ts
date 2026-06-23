@@ -11,6 +11,7 @@ export const openMeteoForecastFixture: OpenMeteoForecastResponse = {
     uv_index: 3.35,
     weather_code: 2,
     is_day: 1,
+    wind_speed_10m: 15,
   },
   hourly: {
     time: [
@@ -34,6 +35,7 @@ export const openMeteoForecastFixture: OpenMeteoForecastResponse = {
     uv_index: [2, 3, 4, 6, 7, 8, 7, 5, 3, 1, 0, 0, 0, 0],
     weather_code: [2, 2, 2, 1, 1, 2, 3, 61, 61, 3, 2, 1, 0, 0],
     is_day: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+    wind_speed_10m: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
   },
   daily: {
     time: [
@@ -50,5 +52,6 @@ export const openMeteoForecastFixture: OpenMeteoForecastResponse = {
     temperature_2m_max: [32, 31, 32, 30, 29, 31, 32],
     precipitation_sum: [0.1, 1.1, 0, 3.6, 8.2, 0, 0.5],
     uv_index_max: [7.6, 8.1, 9.4, 6.8, 5, 8.5, 9],
+    wind_speed_10m_max: [10, 11, 12, 13, 14, 15, 16],
   },
 };
