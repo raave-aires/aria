@@ -3,6 +3,7 @@ import { CloudRainWind, Droplet, Sun } from "lucide-react";
 import { WeatherIcon } from "@/components/widgets/weather/weather-icon";
 import type { CurrentWeather } from "@/lib/weather/types";
 import {
+	formatHumidity,
 	formatPrecipitation,
 	formatSpeed,
 	formatTemperature,
@@ -14,19 +15,31 @@ function WeatherMetric({
 	label,
 	value,
 	detail,
+	compact = false,
+	fill = false,
 }: {
 	icon: React.ReactNode;
 	label: string;
 	value: string;
 	detail?: string | null;
+	compact?: boolean;
+	fill?: boolean;
 }) {
 	return (
-		<div className="min-w-0 rounded-2xl bg-foreground/7 px-3 py-2.5">
-			<dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+		<div
+			className={`min-w-0 rounded-2xl bg-foreground/7 ${compact ? "px-4 py-3" : "px-4 py-2.5"} ${fill ? "h-full" : ""}`}
+		>
+			<dt
+				className={`flex items-center gap-1.5 text-muted-foreground ${compact ? "text-[0.6875rem]" : "text-xs"}`}
+			>
 				{icon}
 				{label}
 			</dt>
-			<dd className="mt-1 text-sm font-semibold tracking-tight">{value}</dd>
+			<dd
+				className={`font-semibold tracking-tight ${compact ? "mt-0.5 text-sm" : "mt-1 text-sm"}`}
+			>
+				{value}
+			</dd>
 			{detail ? (
 				<p className="text-[0.6875rem] text-muted-foreground">{detail}</p>
 			) : null}
@@ -41,69 +54,115 @@ export function WeatherCurrent({ current }: { current: CurrentWeather }) {
 export function WeatherCurrentSummary({
 	current,
 	locationName,
+	compact = false,
 }: {
 	current: CurrentWeather;
 	locationName?: string;
+	compact?: boolean;
 }) {
 	return (
-		<div className="grid gap-4">
+		<div className={`grid ${compact ? "gap-2" : "gap-4"}`}>
 			<div>
 				{locationName ? (
-					<p className="mb-1 text-sm font-medium text-muted-foreground">
+					<p
+						className={`font-medium text-muted-foreground ${compact ? "mb-0.5 text-sm" : "mb-1 text-sm"}`}
+					>
 						{locationName}
 					</p>
 				) : null}
-				<p className="text-lg font-semibold tracking-tight">
+				<p
+					className={`font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"}`}
+				>
 					{current.conditionLabel}
 				</p>
-				<p className="text-sm text-muted-foreground">{current.dateLabel}</p>
+				<p
+					className={`${compact ? "text-xs" : "text-sm"} text-muted-foreground`}
+				>
+					{current.dateLabel}
+				</p>
 			</div>
 
-			<div className="flex items-center gap-4">
+			<div className={`flex items-center ${compact ? "gap-3" : "gap-4"}`}>
 				<WeatherIcon
 					weatherCode={current.weatherCode}
 					isDay={current.isDay}
-					className="size-24 shrink-0"
+					className={compact ? "size-20 shrink-0" : "size-24 shrink-0"}
 				/>
 				<div>
-					<p className="text-5xl font-medium leading-none tracking-[-0.08em]">
+					<p
+						className={`${compact ? "text-4xl" : "text-5xl"} font-medium leading-none tracking-[-0.08em]`}
+					>
 						{formatTemperature(current.temperature)}
 					</p>
-					<p className="mt-2 text-sm text-muted-foreground">
-						Sensação térmica:{" "}
-						{current.apparentTemperature === null
-							? "—"
-							: formatTemperature(current.apparentTemperature)}
-					</p>
-					<p className="mt-2 text-sm text-muted-foreground">
-						Vento:{" "}
-						{current.windSpeed === null ? "—" : formatSpeed(current.windSpeed)}
-					</p>
+					{compact ? null : (
+						<WeatherReadingDetails current={current} compact={compact} />
+					)}
 				</div>
 			</div>
+
+			{compact ? <WeatherReadingDetails current={current} compact /> : null}
 		</div>
 	);
 }
 
-export function WeatherMetrics({ current }: { current: CurrentWeather }) {
+function WeatherReadingDetails({
+	current,
+	compact,
+}: {
+	current: CurrentWeather;
+	compact: boolean;
+}) {
 	return (
-		<dl className="grid min-w-0 grid-cols-3 gap-2">
+		<div className={compact ? "grid gap-1" : "grid gap-2"}>
+			<p className={`${compact ? "text-xs" : "text-sm"} text-muted-foreground`}>
+				Sensação térmica:{" "}
+				{current.apparentTemperature === null
+					? "—"
+					: formatTemperature(current.apparentTemperature)}
+			</p>
+			<p className={`${compact ? "text-xs" : "text-sm"} text-muted-foreground`}>
+				Velocidade do vento:{" "}
+				{current.windSpeed === null ? "—" : formatSpeed(current.windSpeed)}
+			</p>
+		</div>
+	);
+}
+
+export function WeatherMetrics({
+	current,
+	compact = false,
+	layout = "row",
+}: {
+	current: CurrentWeather;
+	compact?: boolean;
+	layout?: "row" | "column";
+}) {
+	return (
+		<dl
+			className={`grid min-w-0 gap-2 ${layout === "column" ? "h-full grid-cols-1 grid-rows-3" : "grid-cols-3"}`}
+		>
 			<WeatherMetric
 				icon={<Droplet className="size-3.5" aria-hidden="true" />}
 				label="Umidade"
 				value={
-					current.humidity === null ? "—" : formatTemperature(current.humidity)
+					current.humidity === null ? "—" : formatHumidity(current.humidity)
 				}
+				compact={compact}
+				fill={layout === "column"}
 			/>
 			<WeatherMetric
 				icon={<CloudRainWind className="size-3.5" aria-hidden="true" />}
 				label="Chuva"
 				value={formatPrecipitation(current.precipitation)}
+				compact={compact}
+				fill={layout === "column"}
 			/>
 			<WeatherMetric
 				icon={<Sun className="size-3.5" aria-hidden="true" />}
 				label={`UV ${formatUvIndex(current.uvIndex)}`}
 				value={current.uvLabel ?? "—"}
+				compact={compact}
+				fill={layout === "column"}
 			/>
 		</dl>
 	);

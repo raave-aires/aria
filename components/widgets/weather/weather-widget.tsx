@@ -3,6 +3,14 @@ import { CloudOff } from "lucide-react";
 import { WeatherRegular } from "@/components/widgets/weather/weather-regular";
 import { WeatherTall } from "@/components/widgets/weather/weather-tall";
 import { WeatherWidgetMenu } from "@/components/widgets/weather/weather-widget-menu";
+import {
+	Widget,
+	WidgetAction,
+	WidgetContent,
+	WidgetFooter,
+	WidgetHeader,
+	WidgetTitle,
+} from "@/components/widgets/widget";
 import type { WeatherForecast, WeatherSettings } from "@/lib/weather/types";
 
 function WeatherUnavailable() {
@@ -29,32 +37,42 @@ export function WeatherWidget({
 	settings: WeatherSettings;
 }) {
 	const isTall = settings.preferences.size === "tall";
+	const footer = forecast ? (
+		<WidgetFooter className="text-[0.6875rem] text-muted-foreground">
+			<a
+				href="https://open-meteo.com/"
+				target="_blank"
+				rel="noreferrer"
+				className="underline decoration-foreground/25 underline-offset-3 transition-colors hover:text-foreground"
+			>
+				Previsão do Open-Meteo
+			</a>
+			<span>Atualizado às {forecast.current.updatedLabel}</span>
+		</WidgetFooter>
+	) : null;
 
 	return (
-		<article
-			data-testid="weather-widget"
-			className={`surface-panel surface-widget surface-tint flex w-full self-start flex-col overflow-hidden rounded-3xl ${isTall ? "max-w-sm min-w-0" : "max-w-sm"}`}
-		>
+		<Widget data-testid="weather-widget" size={isTall ? "tall" : "regular"}>
 			{forecast && !isTall ? (
-				<div className="min-w-0 px-5 pt-4 pb-4">
-					<WeatherRegular
-						forecast={forecast}
-						locationName={settings.location.name}
-						preferences={settings.preferences}
-						location={settings.location}
-					/>
-				</div>
+				<WeatherRegular
+					forecast={forecast}
+					locationName={settings.location.name}
+					preferences={settings.preferences}
+					location={settings.location}
+				/>
 			) : (
 				<>
-					<header className="flex items-center justify-between gap-3 px-5 pt-4">
-						<h2 className="font-medium">Clima</h2>
-						<WeatherWidgetMenu
-							preferences={settings.preferences}
-							location={settings.location}
-						/>
-					</header>
+					<WidgetHeader>
+						<WidgetTitle>Clima</WidgetTitle>
+						<WidgetAction>
+							<WeatherWidgetMenu
+								preferences={settings.preferences}
+								location={settings.location}
+							/>
+						</WidgetAction>
+					</WidgetHeader>
 
-					<div className="min-w-0 px-5 pt-5 pb-4">
+					<WidgetContent>
 						{forecast ? (
 							<WeatherTall
 								forecast={forecast}
@@ -64,23 +82,10 @@ export function WeatherWidget({
 						) : (
 							<WeatherUnavailable />
 						)}
-					</div>
+					</WidgetContent>
 				</>
 			)}
-
-			{forecast ? (
-				<footer className="flex shrink-0 items-center justify-between gap-3 border-t border-foreground/10 px-5 py-3 text-[0.6875rem] text-muted-foreground">
-					<a
-						href="https://open-meteo.com/"
-						target="_blank"
-						rel="noreferrer"
-						className="underline decoration-foreground/25 underline-offset-3 transition-colors hover:text-foreground"
-					>
-						Previsão do Open-Meteo
-					</a>
-					<span>Atualizado às {forecast.current.updatedLabel}</span>
-				</footer>
-			) : null}
-		</article>
+			{footer}
+		</Widget>
 	);
 }

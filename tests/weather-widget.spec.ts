@@ -18,18 +18,42 @@ test("renderiza o widget e permite abrir as opções", async ({ page }) => {
 });
 
 test("alterna o compacto entre resumo e previsão", async ({ page }) => {
+	const widget = page.getByTestId("weather-widget");
 	const compactTabs = page.getByRole("tablist", {
 		name: "Conteúdo do widget compacto",
 	});
+	const content = widget.locator('[data-slot="card-content"]');
+	const initialHeight = await widget.evaluate(
+		(element) => element.getBoundingClientRect().height,
+	);
+	await expect
+		.poll(() =>
+			content.evaluate(
+				(element) => element.scrollHeight === element.clientHeight,
+			),
+		)
+		.toBe(true);
 
 	await expect(compactTabs.getByRole("tab")).toHaveCount(2);
 	await compactTabs.getByRole("tab", { name: "Mostrar previsão" }).click();
 	await expect(
 		page.getByRole("tablist", { name: "Período da previsão" }),
 	).toBeVisible();
+	await expect
+		.poll(() =>
+			widget.evaluate((element) => element.getBoundingClientRect().height),
+		)
+		.toBe(initialHeight);
+	await expect
+		.poll(() =>
+			content.evaluate(
+				(element) => element.scrollHeight === element.clientHeight,
+			),
+		)
+		.toBe(true);
 
 	await compactTabs.getByRole("tab", { name: "Mostrar resumo" }).click();
-	await expect(page.getByText("Sensação", { exact: true })).toBeVisible();
+	await expect(page.getByText("Umidade", { exact: true })).toBeVisible();
 });
 
 test("busca cidades globais na caixa de localização", async ({ page }) => {

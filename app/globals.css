@@ -94,6 +94,10 @@
 	--app-surface-shadow-opacity: 0.12;
 	--app-tint-start-opacity: 0.2;
 	--app-tint-end-opacity: 0.07;
+	--widget-min-inline-size: 20.625rem;
+	--widget-max-inline-size: 24rem;
+	--widget-regular-block-size: 21.25rem;
+	--widget-tall-block-size: 42rem;
 	--scene-overlay: linear-gradient(
 		180deg,
 		rgb(16 32 37 / 0.12) 0%,
@@ -247,6 +251,26 @@ html:not(.dark) {
 
 	.surface-widget {
 		background-color: rgb(var(--app-panel-rgb) / var(--app-widget-opacity));
+	}
+
+	.widget-board {
+		grid-template-columns: repeat(
+				auto-fit,
+				minmax(min(100%, var(--widget-min-inline-size)), 1fr)
+			);
+	}
+
+	.widget {
+		inline-size: min(100%, var(--widget-max-inline-size));
+		min-inline-size: 0;
+	}
+
+	.widget[data-size="regular"] {
+		block-size: var(--widget-regular-block-size);
+	}
+
+	.widget[data-size="tall"] {
+		block-size: var(--widget-tall-block-size);
 	}
 
 	.surface-control {

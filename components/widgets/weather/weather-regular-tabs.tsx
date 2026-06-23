@@ -10,6 +10,12 @@ import {
 } from "@/components/widgets/weather/weather-current";
 import { WeatherTabs } from "@/components/widgets/weather/weather-tabs";
 import { WeatherWidgetMenu } from "@/components/widgets/weather/weather-widget-menu";
+import {
+	WidgetAction,
+	WidgetContent,
+	WidgetHeader,
+	WidgetTitle,
+} from "@/components/widgets/widget";
 import type {
 	WeatherForecast,
 	WeatherLocation,
@@ -65,10 +71,10 @@ export function WeatherRegularTabs({
 	const [activeTab, setActiveTab] = useState<CompactWeatherTab>("primary");
 
 	return (
-		<section aria-label="Widget de clima" className="grid gap-5">
-			<header className="flex items-center justify-between gap-3">
+		<>
+			<WidgetHeader>
 				<div className="flex items-center gap-2">
-					<h2 className="font-medium">Clima</h2>
+					<WidgetTitle>Clima</WidgetTitle>
 					<div
 						role="tablist"
 						aria-label="Conteúdo do widget compacto"
@@ -86,26 +92,35 @@ export function WeatherRegularTabs({
 						/>
 					</div>
 				</div>
-				<WeatherWidgetMenu preferences={preferences} location={location} />
-			</header>
+				<WidgetAction>
+					<WeatherWidgetMenu preferences={preferences} location={location} />
+				</WidgetAction>
+			</WidgetHeader>
 
-			<div role="tabpanel">
-				{activeTab === "primary" ? (
-					<div className="grid gap-4">
-						<WeatherCurrentSummary
-							current={forecast.current}
-							locationName={locationName}
+			<WidgetContent aria-label="Widget de clima">
+				<div role="tabpanel" className="h-full min-h-0">
+					{activeTab === "primary" ? (
+						<div className="grid h-full grid-cols-[minmax(0,1fr)_7.25rem] items-center gap-3">
+							<WeatherCurrentSummary
+								current={forecast.current}
+								locationName={locationName}
+								compact
+							/>
+							<WeatherMetrics
+								current={forecast.current}
+								compact
+								layout="column"
+							/>
+						</div>
+					) : (
+						<WeatherTabs
+							hourly={forecast.hourly}
+							daily={forecast.daily}
+							preferences={preferences}
 						/>
-						<WeatherMetrics current={forecast.current} />
-					</div>
-				) : (
-					<WeatherTabs
-						hourly={forecast.hourly}
-						daily={forecast.daily}
-						preferences={preferences}
-					/>
-				)}
-			</div>
-		</section>
+					)}
+				</div>
+			</WidgetContent>
+		</>
 	);
 }

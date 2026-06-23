@@ -69,6 +69,10 @@ export function formatTemperature(value: number) {
 	return `${Math.round(value)}°`;
 }
 
+export function formatHumidity(value: number) {
+	return `${Math.round(value)}%`;
+}
+
 export function formatSpeed(value: number) {
 	return `${Math.round(value)} km/h`;
 }
