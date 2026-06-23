@@ -11,7 +11,7 @@ import {
   APPEARANCE_COOKIE,
   parseAppearanceCookie,
 } from "@/lib/settings/persistence-cookie";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

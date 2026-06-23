@@ -55,7 +55,7 @@ export function WeatherRegularTabs({
   forecast,
   locationName,
   preferences,
-  location
+  location,
 }: {
   forecast: WeatherForecast;
   locationName: string;

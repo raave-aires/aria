@@ -48,7 +48,10 @@ export function WeatherWidget({
         <>
           <header className="flex items-center justify-between gap-3 px-5 pt-4">
             <h2 className="font-medium">Clima</h2>
-            <WeatherWidgetMenu preferences={settings.preferences} location={settings.location} />
+            <WeatherWidgetMenu
+              preferences={settings.preferences}
+              location={settings.location}
+            />
           </header>
 
           <div className="min-w-0 px-5 pt-5 pb-4">

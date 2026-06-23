@@ -56,7 +56,8 @@ export async function getOpenMeteoForecast(location: WeatherLocation) {
     wind_speed_unit: "kmh",
     current:
       "temperature_2m,apparent_temperature,precipitation,relative_humidity_2m,uv_index,weather_code,is_day,wind_speed_10m",
-    hourly: "temperature_2m,precipitation,uv_index,weather_code,is_day,wind_speed_10m",
+    hourly:
+      "temperature_2m,precipitation,uv_index,weather_code,is_day,wind_speed_10m",
     daily:
       "weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,uv_index_max,wind_speed_10m_max",
   });

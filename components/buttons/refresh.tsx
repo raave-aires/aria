@@ -15,15 +15,15 @@ export function RefreshButton({ onRefresh }: RefreshButtonProps) {
 
   async function handleClick() {
     try {
-      setIsPending(true)
+      setIsPending(true);
       await onRefresh();
-      toast.success("Previsão atualizada com sucesso!")
+      toast.success("Previsão atualizada com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar", {
-        description: "Tente novamente em alguns minutos."
+        description: "Tente novamente em alguns minutos.",
       });
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
   }
 

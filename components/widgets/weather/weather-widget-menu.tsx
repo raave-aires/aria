@@ -31,7 +31,7 @@ import { RefreshButton } from "@/components/buttons/refresh";
 
 export function WeatherWidgetMenu({
   preferences,
-  location
+  location,
 }: {
   preferences: WeatherWidgetPreferences;
   location: WeatherLocation;

@@ -77,9 +77,7 @@ export function WeatherCurrentSummary({
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Vento:{" "}
-            {current.windSpeed === null
-              ? "—"
-              : formatSpeed(current.windSpeed)}
+            {current.windSpeed === null ? "—" : formatSpeed(current.windSpeed)}
           </p>
         </div>
       </div>
@@ -94,9 +92,7 @@ export function WeatherMetrics({ current }: { current: CurrentWeather }) {
         icon={<Droplet className="size-3.5" aria-hidden="true" />}
         label="Umidade"
         value={
-          current.humidity === null
-            ? "—"
-            : formatTemperature(current.humidity)
+          current.humidity === null ? "—" : formatTemperature(current.humidity)
         }
       />
       <WeatherMetric
